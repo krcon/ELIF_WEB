@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="adminLog">
+
+	<select id="selectLogInCount" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(*) as CNT
+	        FROM
+	            RV704_ADMIN_LOGIN
+	    ]]>
+	    
+		<where>
+	    <if test="sdate != '' and sdate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+	    </if>
+	    <if test="edate != '' and edate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+			]]>
+	    </if>
+	    <if test="login_type != '' and login_type != null">
+	    	<![CDATA[
+			and login_type = #{login_type}
+			]]>
+	    </if>
+	    <if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (userid like '%${keyword}%' OR username like '%${keyword}%' OR login_ip like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+	    </if>
+	    </where>
+	</select>
+	<select id="selectLogInList" resultType="com.krcon.elif.vo.Log">
+	    <![CDATA[
+		SELECT
+			COUNT(*) OVER() AS TOTAL_COUNT,
+			AA.*
+		FROM(  
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+	            IDX,
+	            USERID,
+	            USERNAME,
+	            LOGIN_IP,
+	            LOGIN_TYPE,
+	            CREA_DTM, 
+	            LOGIN_DTM
+	            
+	        FROM
+	            RV704_ADMIN_LOGIN
+			) AA
+	    ]]>
+	    
+		<where>
+	    <if test="sdate != '' and sdate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+	    </if>
+	    <if test="login_type != '' and login_type != null">
+	    	<![CDATA[
+			and login_type = #{login_type}
+			]]>
+	    </if>
+	    <if test="edate != '' and edate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+			]]>
+	    </if>
+	    <if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (userid like '%${keyword}%' OR username like '%${keyword}%' OR login_ip like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+	    </if>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+	    </where>
+	    <![CDATA[ 
+	        ORDER BY CREA_DTM DESC   
+			
+	    ]]>
+	</select>
+	<select id="selectLogInDetail" resultType="com.krcon.elif.vo.Log">
+	    <![CDATA[
+	        SELECT
+	            IDX,
+	            USERID,
+	            USERNAME,
+	            LOGIN_IP,
+	            LOGIN_TYPE,
+	            CREA_DTM, 
+	            LOGIN_DTM
+	        FROM
+	            RV704_ADMIN_LOGIN
+	        WHERE
+	            IDX = #{pid}        
+	    ]]>
+	</select>
+	
+	<insert id="insertLogIn"  useGeneratedKeys="true" keyProperty="idx">
+	    <selectKey keyProperty="idx" resultType="int" order="BEFORE">
+	        SELECT RV704_ADMIN_LOGIN_IDX.NEXTVAL FROM DUAL
+	    </selectKey>
+	    <![CDATA[
+	        INSERT INTO RV704_ADMIN_LOGIN
+	        (
+				IDX,
+	            USERID,
+	            USERNAME,
+	            LOGIN_IP,
+	            LOGIN_TYPE,
+	            CREA_DTM, 
+	            LOGIN_DTM
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{userid}, 
+	            #{name}, 
+	            #{login_ip},
+	            #{login_type},
+	            SYSDATE, 
+	            SYSDATE
+	        )
+	    ]]>
+	</insert>
+	
+	<update id="deleteLogIn">
+	    <![CDATA[
+	        DELETE FROM RV704_ADMIN_LOGIN
+	        WHERE
+	            IDX = #{IDX}  
+	    ]]>
+	</update>
+	
+	
+	<select id="selectLogCount" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(*) as CNT
+	        FROM
+	            RV703_ADMIN_LOG
+	    ]]>
+	    
+		<where>
+	    <if test="sdate != '' and sdate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+	    </if>
+	    <if test="edate != '' and edate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+			]]>
+	    </if>
+	    <if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (userid like '%${keyword}%' OR username like '%${keyword}%' OR ACCESS_MENU like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+	    </if>
+	    </where>
+	</select>
+	<select id="selectLogList" resultType="com.krcon.elif.vo.Log">
+	    <![CDATA[
+		SELECT
+			COUNT(*) OVER() AS TOTAL_COUNT,
+			AA.*
+		FROM(  
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+	            IDX,
+	            USERID,
+	            USERNAME,
+	            LOGIN_IP,
+	            ACCESS_MENU,
+	            DESCRIPTION,
+	            CREA_DTM
+	            
+				FROM
+					RV703_ADMIN_LOG
+			) AA
+	    ]]>
+	    
+		<where>
+	    <if test="sdate != '' and sdate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+	    </if>
+	    <if test="edate != '' and edate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+			]]>
+	    </if>
+	    <if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (userid like '%${keyword}%' OR username like '%${keyword}%' OR ACCESS_MENU like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+	    </if>
+
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+	    </where>
+	    <![CDATA[ 
+	        ORDER BY CREA_DTM DESC
+			
+	    ]]>
+	</select>
+	<select id="selectLogDetail" resultType="com.krcon.elif.vo.Log">
+	    <![CDATA[
+	        SELECT
+	            IDX,
+	            USERID,
+	            USERNAME,
+	            LOGIN_IP,
+	            ACCESS_MENU,
+	            DESCRIPTION,
+	            CREA_DTM
+	        FROM
+	            RV703_ADMIN_LOG
+	        WHERE
+	            IDX = #{pid}        
+	    ]]>
+	</select>
+	
+	<insert id="insertLog" useGeneratedKeys="true" keyProperty="idx">
+	    <selectKey keyProperty="idx" resultType="int" order="BEFORE">
+	        SELECT RV703_ADMIN_LOG_IDX.NEXTVAL FROM DUAL
+	    </selectKey>
+	    <![CDATA[
+	        
+	        INSERT INTO RV703_ADMIN_LOG
+	        (
+				idx,
+	            USERID,
+	            LOGIN_IP,
+	            ACCESS_MENU,
+	            DESCRIPTION,
+	            CREA_DTM 
+	            
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{userid}, 
+	            #{login_ip},
+	            #{access_menu},
+	            #{description},
+	            SYSDATE 
+	        )
+	    ]]>
+	</insert>
+	
+	<update id="deleteLog">
+	    <![CDATA[
+	        DELETE FROM RV703_ADMIN_LOG
+	        WHERE
+	            IDX = #{IDX}  
+	    ]]>
+	</update>
+	
+	
+	
+	<select id="selectLogGrantCount" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(*) as CNT
+	        FROM
+	            RV706_ADMIN_LOG_GRANT
+	    ]]>
+		<where>
+	    <if test="sdate != '' and sdate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+	    </if>
+	    <if test="edate != '' and edate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+			]]>
+	    </if>
+	    <if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (userid like '%${keyword}%' OR username like '%${keyword}%' OR updaid like '%${keyword}%' OR updaname like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+	    </if>
+	    </where>
+	</select>
+	<select id="selectLogGrantList" resultType="com.krcon.elif.vo.Log">
+	    <![CDATA[
+		SELECT
+			COUNT(*) OVER() AS TOTAL_COUNT,
+			AA.*
+		FROM(  
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+	            IDX,
+	            USERID,
+	            USERNAME,
+	            UPDAID,
+	            UPDANAME,
+	            GRANT_TYPE,
+	            PREV,
+	            NEXT,
+	            LOGIN_IP,
+	            CREA_DTM
+	            
+	        FROM
+	            RV706_ADMIN_LOG_GRANT
+		) AA
+	    ]]>
+	    
+		<where>
+	    <if test="sdate != '' and sdate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+	    </if>
+	    <if test="edate != '' and edate != null">
+	    	<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+			]]>
+	    </if>
+	    <if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (userid like '%${keyword}%' OR username like '%${keyword}%' OR login_ip like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+	    </if>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+	    </where>
+	    <![CDATA[ 
+	        ORDER BY CREA_DTM DESC
+			
+	    ]]>
+	</select>
+	<select id="selectLogGrantDetail" resultType="com.krcon.elif.vo.Log">
+	    <![CDATA[
+	        SELECT
+	            IDX,
+	            USERID,
+	            USERNAME,
+	            UPDAID,
+	            UPDANAME,
+	            GRANT_TYPE,
+	            PREV,
+	            NEXT,
+	            LOGIN_IP,
+	            CREA_DTM
+	        FROM
+	            RV706_ADMIN_LOG_GRANT
+	        WHERE
+	            IDX = #{pid}        
+	    ]]>
+	</select>
+	
+	
+	<insert id="insertLogGrant" useGeneratedKeys="true" keyProperty="idx" >
+	    <selectKey keyProperty="idx" resultType="int" order="BEFORE">
+	        SELECT RV706_ADMIN_LOG_GRANT_IDX.NEXTVAL FROM DUAL
+	    </selectKey>
+	    <![CDATA[
+	        
+	        INSERT INTO RV706_ADMIN_LOG_GRANT
+	        (
+				idx,
+	            USERID,
+	            USERNAME,
+	            UPDAID,
+	            UPDANAME,
+	            GRANT_TYPE,
+	            PREV,
+	            NEXT,
+	            LOGIN_IP,
+	            CREA_DTM
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{userid}, 
+	            #{username}, 
+	            #{updaid},
+	            #{updaname},
+	            #{grant_type},
+	            #{prev},
+	            #{next},
+	            #{login_ip},
+	            SYSDATE
+	        )
+	    ]]>
+	</insert>
+	
+	
+	
+	<update id="deleteLogGrant">
+	    <![CDATA[
+	        DELETE FROM RV706_ADMIN_LOG_GRANT
+	        WHERE
+	            IDX = #{IDX}  
+	    ]]>
+	</update>
+	
+	<select id="selectLogExcelCount" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(*) as CNT
+	        FROM
+	            RV705_ADMIN_LOG_EXCEL
+	    ]]>
+		<where>
+	    <if test="sdate != '' and sdate != null">
+	    	<![CDATA[
+			and date_format(DOWN_DTM, '%Y-%m-%d') >= #{sdate}
+			]]>
+	    </if>
+	    <if test="edate != '' and edate != null">
+	    	<![CDATA[
+			and date_format(DOWN_DTM, '%Y-%m-%d') <= #{edate}
+			]]>
+	    </if>
+	    <if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (USER_ID like '%${keyword}%' OR username like '%${keyword}%' OR reason like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+	    </if>
+	    </where>
+	</select>
+	<select id="selectLogExcelList" resultType="com.krcon.elif.vo.Log">
+	    <![CDATA[
+		SELECT
+			COUNT(*) OVER() AS TOTAL_COUNT,
+			AA.*
+		FROM(  
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+	            IDX,
+	            USER_ID as USERID,
+	            USERNAME,
+	            ACCESS_MENU,
+	            REASON,
+	            LOGIN_IP,
+	            DOWN_DTM
+	            
+	        FROM
+	            RV705_ADMIN_LOG_EXCEL
+		) AA
+	    ]]>
+	    
+		<where>
+	    <if test="sdate != '' and sdate != null">
+	    	<![CDATA[
+			and date_format(DOWN_DTM, '%Y-%m-%d') >= #{sdate}
+			]]>
+	    </if>
+	    <if test="edate != '' and edate != null">
+	    	<![CDATA[
+			and date_format(DOWN_DTM, '%Y-%m-%d') <= #{edate}
+			]]>
+	    </if>
+	    <if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (USER_ID like '%${keyword}%' OR username like '%${keyword}%' OR reason like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+	    </if>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+	    </where>
+	    <![CDATA[ 
+	        ORDER BY DOWN_DTM DESC
+			
+	    ]]>
+	</select>
+	<select id="selectLogExcelDetail" resultType="com.krcon.elif.vo.Log">
+	    <![CDATA[
+	        SELECT
+	            IDX,
+	            USER_ID as USERID,
+	            USERNAME,
+	            ACCESS_MENU,
+	            REASON,
+	            LOGIN_IP,
+	            DOWN_DTM
+	        FROM
+	            RV705_ADMIN_LOG_EXCEL
+	        WHERE
+	            IDX = #{pid}        
+	    ]]>
+	</select>
+	
+	
+	<insert id="insertLogExcel" useGeneratedKeys="true" keyProperty="idx" >
+	    <selectKey keyProperty="idx" resultType="int" order="BEFORE">
+	        SELECT RV705_ADMIN_LOG_EXCEL_IDX.NEXTVAL FROM DUAL
+	    </selectKey>
+	    <![CDATA[
+	        
+	        INSERT INTO RV705_ADMIN_LOG_EXCEL
+	        (
+				idx,
+	            USER_ID,
+				DEPARTMENT,
+				USERNAME,
+				ACCESS_MENU,
+				REASON,
+				LOGIN_IP,
+				DOWN_DTM
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{userid},
+				#{department},
+				#{username},
+				#{access_menu},
+				#{reason},
+				#{login_ip},
+	            SYSDATE
+	        )
+	    ]]>
+	</insert>
+	
+	
+	
+	<update id="deleteLogExcel">
+	    <![CDATA[
+	        DELETE FROM RV705_ADMIN_LOG_EXCEL
+	        WHERE
+	            IDX = #{IDX}  
+	    ]]>
+	</update>
+	
+</mapper>

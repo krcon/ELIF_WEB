@@ -1,0 +1,163 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<%@ taglib prefix="ct" uri="/WEB-INF/tlds/common.tld"%>
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <%@ include file="../include/head.jsp" %>
+    <meta name="title" content="나의 분양단지, 엘리프"/> 
+    <meta name="keywords" content="나의 분양단지, MY ELIF, 엘리프"/> 
+    <meta name="description" content="고객님께서 계약을 진행한 분양단지를 확인할 수 있습니다."/>
+    <meta http-equiv="Expires" content="-1"> 
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="No-Cache">
+    <meta property="og:title" content="나의 분양단지, 엘리프">
+    <meta property="og:description" content="고객님께서 계약을 진행한 분양단지를 확인할 수 있습니다.">
+    <meta property="og:image" content="https://elif.krcon.co.kr/resources/web/images/common/og_elif.png" />
+    <title>홈 | 엘리프</title>
+</head>
+
+<body>
+    <!-- wrap -->
+    <div class="wrap">
+        <a href="#header" class="skipNav">주메뉴 바로가기</a>
+        <a href="#container" class="skipNav">본문바로가기</a>
+        <!-- header -->
+        <header id="header">
+            <!-- gnb include -->
+            <%@ include file="../include/header.jsp" %>
+        </header>
+        <!-- //header -->
+        <main id="container">
+            <div class="inner">
+                <!-- Visual & Title -->
+                <section class="visual myelif">
+                    <h2>마이 엘리프</h2>
+                </section>
+                <!-- //Visual & Title -->
+                <!-- 페이지 위치 -->
+                <section class="locator">
+                    <ul>
+                        <li><a href="/index"><i>home</i></a></li>
+                        <li><a href="/mypage/index"><span>마이 엘리프</span></a></li>
+                        <li><span>나의 분양 단지</span></li>
+                    </ul>
+                </section>
+                <!-- //페이지 위치 -->
+                <div class="contents_wrap">
+                    <!-- LNB -->
+                    <nav class="lnb small">
+                        <ul>
+                            <li><a href="../mypage/index">홈</a></li>
+                            <li><a href="../mypage/mycomplex" class="on">나의 분양 단지</a></li>
+                            <li><a href="../mypage/payment-guide">분양대금 조회</a></li>
+                            <!-- <li><a href="../mypage/visit-reservation-01">사전점검 방문 예약</a></li> -->
+                            <!-- <li><a href="../mypage/movein-reservation-01">입주 예약</a></li> -->
+                            <li><a href="../mypage/inquiry-apply">고객 문의</a></li>
+                            <li><a href="../mypage/notice">공지사항</a></li>
+                            <li><a href="https://cs.kyeryong.net/jsp/as/defc/co/defc_co_confirm.jsp" target="_blank">A/S 신청</a></li>
+                        </ul>
+                    </nav>
+                    <!-- //LNB-->
+                    <section class="cont_section">
+                        <p class="blind">나의 분양단지</p>
+                        <!-- // [D] 등록단지 없을 경우 : class hide 제거-->
+                            <div class="no_data_wrap">
+                                <p class="no_data_txt no_data_ico">등록된 단지가 없습니다.</p>
+                            </div>
+                        <!-- // [D] 등록단지 없을 경우 -->
+                        <div class="my_block_wrap hide">
+                            <ul>
+                                <li class="block_item">
+                                    <div class="img_area">
+                                        <span><img src="/resources/web/images/construction_temp_default.png" alt=""></span>
+                                    </div>
+                                    <dl>
+                                        <dt>
+                                            <span class="cate">아파트</span>
+                                            <div class="tit">
+                                                <em>포항 초곡 엘리프</em><span class="badge green">분양중</span>
+                                            </div>
+                                            <span class="date">2021년 08월 예정</span>
+                                        </dt>
+                                        <dd>
+                                            <div class="info">
+                                                <p class="locate">경상북도 포항시 초곡지구 88-1BL</p>
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                    <div class="block_btn_wrap">
+                                        <a href="#" class="btn green">고객문의</a>
+                                    </div>
+                                </li>
+                                <li class="block_item">
+                                    <div class="img_area">
+                                        <span><img src="/resources/web/images/construction_temp_default.png" alt=""></span>
+                                    </div>
+                                    <dl>
+                                        <dt>
+                                            <span class="cate">아파트</span>
+                                            <div class="tit">
+                                                <em>포항 초곡 엘리프</em><span class="badge brown">입주예정</span> <!-- [D] 0830 : 클래스 변경, 텍스트 변경 -->
+                                                <!--
+                                                    [D] 0830 : 뱃지 가이드
+                                                    class="badge green" - 분양중
+                                                    class="badge brown" - 입주예정
+                                                    class="badge blue"  - 입주진행
+                                                -->
+                                            </div>
+                                            <span class="date">2021년 08월 예정</span>
+                                        </dt>
+                                        <dd>
+                                            <div class="info">
+                                                <p class="locate">경상북도 포항시 초곡지구 88-1BL</p>
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                    <div class="block_btn_wrap">
+                                        <a href="#" class="btn green">사전점검 방문예약</a>
+                                        <a href="#" class="btn gray">고객문의</a>
+                                    </div>
+                                </li>
+                                <li class="block_item">
+                                    <div class="img_area">
+                                        <span><img src="/resources/web/images/construction_temp_default.png" alt=""></span>
+                                    </div>
+                                    <dl>
+                                        <dt>
+                                            <span class="cate">아파트</span>
+                                            <div class="tit">
+                                                <em>포항 초곡 엘리프</em><span class="badge blue">입주진행</span> <!-- [D] 0830 : 클래스 변경, 텍스트 변경 -->
+                                            </div>
+                                            <span class="date">2021년 08월 예정</span>
+                                        </dt>
+                                        <dd>
+                                            <div class="info">
+                                                <p class="locate">경상북도 포항시 초곡지구 88-1BL</p>
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                    <div class="block_btn_wrap">
+                                        <a href="#" class="btn green">입주예약</a>
+                                        <a href="#" class="btn gray">고객문의</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                </div><!-- //contents_wrap -->
+            </div><!-- //inner -->
+
+        </main>
+        <!-- //container -->
+            <%@ include file="../include/footer.jsp" %>
+    </div>
+    <%@ include file="../include/javascript.jsp" %>
+</body>
+
+</html>

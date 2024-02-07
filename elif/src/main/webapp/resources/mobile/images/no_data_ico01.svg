@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="74.791" height="69.112" viewBox="0 0 74.791 69.112">
+  <g id="ico" transform="translate(-6.548 -4.358)">
+    <circle id="타원_53" data-name="타원 53" cx="13.446" cy="13.446" r="13.446" transform="translate(30.243 35.513)" fill="#054438"/>
+    <rect id="사각형_167" data-name="사각형 167" width="69.282" height="54.436" transform="translate(9.048 16.535)" fill="none" stroke="#d4dab3" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+    <line id="선_116" data-name="선 116" x2="68.732" transform="translate(10.107 27.67)" fill="none" stroke="#d4dab3" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+    <g id="그룹_171" data-name="그룹 171">
+      <line id="선_117" data-name="선 117" y2="9.677" transform="translate(23.688 6.858)" fill="none" stroke="#d4dab3" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+      <line id="선_118" data-name="선 118" y2="9.677" transform="translate(63.688 6.858)" fill="none" stroke="#d4dab3" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+    </g>
+    <g id="그룹_163" data-name="그룹 163">
+      <line id="선_124" data-name="선 124" x2="8.003" y2="8.003" transform="translate(39.687 44.957)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+      <line id="선_125" data-name="선 125" x1="8.003" y2="8.003" transform="translate(39.687 44.957)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+    </g>
+  </g>
+</svg>

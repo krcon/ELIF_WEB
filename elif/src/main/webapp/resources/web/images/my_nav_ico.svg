@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="49.5" height="56.5" viewBox="0 0 49.5 56.5">
+  <g id="ico" transform="translate(2 2.5)">
+    <ellipse id="타원_31" data-name="타원 31" cx="11" cy="10.5" rx="11" ry="10.5" transform="translate(8.5 0)" fill="none" stroke="#d4dab3" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+    <path id="패스_86" data-name="패스 86" d="M20,74.848V59.892c0-4.261,3.486-8.392,7.747-8.392H50.342c4.261,0,7.747,4.132,7.747,8.392V74.848" transform="translate(-19.5 -26.323)" fill="none" stroke="#d4dab3" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+    <circle id="타원_36" data-name="타원 36" cx="9" cy="9" r="9" transform="translate(29.5 36)" fill="#fff"/>
+    <path id="Icon_feather-check" data-name="Icon feather-check" d="M12.982,9l-4.8,4.8L6,11.618" transform="translate(29 33.5)" fill="none" stroke="#054438" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  </g>
+</svg>

@@ -1,0 +1,98 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<%@ taglib prefix="ct" uri="/WEB-INF/tlds/common.tld"%>
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <%@ include file="../include/head.jsp" %>
+    <meta name="title" content="사전점검 방문 예약, 엘리프"/> 
+    <meta name="keywords" content="사전점검 방문 예약, 예약 조회 및 수정 MY ELIF, 엘리프"/> 
+    <meta name="description" content="사전점검 방문 예약 신청 및 예약 내역 조회가 가능합니다. "/>
+    <meta property="og:title" content="사전점검 방문 예약, 엘리프">
+    <meta property="og:description" content="사전점검 방문 예약 신청 및 예약 내역 조회가 가능합니다. ">
+    <meta property="og:image" content="/resources/mobile/images/common/og_elif.png" />
+    
+    <title>방문 예약 신청 | 사전점검 방문 예약 | 엘리프</title>
+</head>
+<body>
+    <!-- wrap -->
+    <div class="wrap">
+        <a href="#header" class="skipNav">주메뉴 바로가기</a>
+        <a href="#container" class="skipNav">본문바로가기</a>
+        <!-- header -->
+        <header id="header" class=""><!-- 마이 엘리프 : my_open / 메뉴 : gnb_open -->
+            <!-- gnb include -->
+            <%@ include file="../include/header.jsp" %>
+        </header>
+        <!-- // header -->
+        <main class="container" id="container">
+            <div class="inner">
+                <section class="visual mypage">
+                    <h2>마이 엘리프</h2>
+                </section>
+                <div class="contents_wrap">
+                    <!-- LNB -->
+                    
+                    <!-- //LNB-->
+                    <div class="tab_linker_wrap">
+                        <ul class="tab_linker">
+                            <li>
+                                <a href="/mobile/mypage/visit-reservation-01">방문 예약 신청</a>
+                            </li>
+                            <li class="on">
+                                <a href="/mobile/mypage/visit-lookup-01">예약조회 및 수정</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tab_content_wrap">
+                        <div class="tab_content">
+                            <div class="select_box_wrap ">
+                                <ul>
+                                    <li class="s_box">
+                                        <a href="/mobile/mypage/visit-lookup-03">
+                                            <i class="box_ico">
+                                                <img src="/resources/mobile/images/mypage_ico01.png" alt="">
+                                            </i>
+                                            <div class="s_txt">
+                                                <span class="box_tit">회원 예약</span>
+                                                <span class="box-txt">로그인 이후 예약 가능합니다.</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li class="s_box">
+                                        <a href="/mobile/mypage/visit-lookup-02">
+                                            <i class="box_ico">
+                                                <img src="/resources/mobile/images/mypage_ico02.png" alt="">
+                                            </i>
+                                            <div class="s_txt">
+                                                <span class="box_tit">비회원 예약</span>
+                                                <span class="box-txt">로그인 없이 기본 정보<br>입력 후 예약 가능합니다.</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+        <!-- //container -->
+        <!-- [blockUi] 로딩시 class에 on -->
+        <div id="blockUi"></div>
+        <%@ include file="../include/footer.jsp" %>
+    </div>
+    <!-- //wrap -->
+    <%@ include file="../include/javascript.jsp" %>
+    <script>
+        // elif.saleSearch();
+    </script>
+</body>
+
+</html>

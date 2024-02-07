@@ -1,0 +1,413 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<%@ taglib prefix="ct" uri="/WEB-INF/tlds/common.tld"%>
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <%@ include file="../include/head.jsp" %>
+    <meta name="title" content="분양대금 납부조회, 엘리프"/> 
+    <meta name="keywords" content="분양대금 납부 조회, 중도금 조회, 입금내역, 예상 입금액, MY ELIF, 엘리프"/> 
+    <meta name="description" content="고객님의 분양대금을 조회할 수 있습니다."/>
+    <meta http-equiv="Expires" content="-1"> 
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="No-Cache">
+    <meta property="og:title" content="분양대금 납부조회, 엘리프">
+    <meta property="og:description" content="고객님의 분양대금을 조회할 수 있습니다.">
+    <meta property="og:image" content="https://elif.krcon.co.kr/resources/web/images/common/og_elif.png" />
+    <link href="/resources/web/css/jquery-ui.css" rel="stylesheet">
+    <title>분양대금조회 | 엘리프</title>
+</head>
+
+<body>
+    <!-- wrap -->
+    <div class="wrap">
+        <a href="#header" class="skipNav">주메뉴 바로가기</a>
+        <a href="#container" class="skipNav">본문바로가기</a>
+        <!-- header -->
+        <header id="header">
+            <!-- gnb include -->
+            <%@ include file="../include/header.jsp" %>
+        </header>
+        <!-- //header -->
+        <main id="container">
+            <div class="inner">
+                <!-- Visual & Title -->
+                <section class="visual myelif">
+                    <h2>마이 엘리프</h2>
+                </section>
+                <!-- //Visual & Title -->
+                <!-- 페이지 위치 -->
+                <section class="locator">
+                    <ul>
+                        <li><a href="/index"><i>home</i></a></li>
+                        <li><a href="/mypage/index"><span>마이 엘리프</span></a></li>
+                        <li><span>분양대금 조회</span></li>
+                    </ul>
+                </section>
+                <!-- //페이지 위치 -->
+                <div class="contents_wrap">
+                    <!-- LNB -->
+                    <nav class="lnb small">
+                        <ul>
+                            <li><a href="../mypage/index">홈</a></li>
+                            <li><a href="../mypage/mycomplex">나의 분양 단지</a></li>
+                            <li><a href="../mypage/payment-guide" class="on">분양대금 조회</a></li>
+                            <!-- <li><a href="../mypage/visit-reservation-01">사전점검 방문 예약</a></li> -->
+                            <!-- <li><a href="../mypage/movein-reservation-01">입주 예약</a></li> -->
+                            <li><a href="../mypage/inquiry-apply">고객 문의</a></li>
+                            <li><a href="../mypage/notice">공지사항</a></li>
+                            <li><a href="https://cs.kyeryong.net/jsp/as/defc/co/defc_co_confirm.jsp" target="_blank">A/S 신청</a></li>
+                        </ul>
+                    </nav>
+                    <!-- //LNB-->
+                    <div class="tab_linker_wrap">
+                        <ul class="tab_linker">
+                            <li>
+                                <a href="#">분양 가이드​</a>
+                            </li>
+                            <li class="on">
+                                <a href="#">중도금 조회​​</a>
+                            </li>
+                        </ul>
+                    </div><!-- //tab_linker_wrap -->
+                    <div class=tab_content_wrap>
+                        <div class="tab_content">
+                            <section class="cont_section">
+                                <div class="info_table">
+                                    <table class="table no-head">
+                                    <caption>사업자 명과 금액 구분을 선택하는 테이블입니다.</caption>
+                                        <colgroup>
+                                            <col style="width:206px">
+                                            <col style="width:994px">
+                                        </colgroup>
+                                        <tr>
+                                            <th scope="row"><label for="name" class="tit">사업장 명​</label></th>
+                                            <td>
+                                                <select id="apt" name="pjt_cd" class="wmd">
+                                                    <option value="">선택</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row"><label for="price" class="tit">금액 구분​</label></th>
+                                            <td>
+                                                <select id="price" name="pjt_price" class="wmd">
+                                                    <option value="">선택</option>
+                                                    <option value="분양 금액">분양 금액</option>
+                                                    <option value="PLUS 옵션 금액">PLUS 옵션 금액</option>
+                                                    <option value="발코니 확장 금액">발코니 확장 금액</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div><!-- info_table -->
+                            </section>
+                            <section class="cont_section">
+                                <p class="title1">계약 내역</p>
+                                <div class="info_table">
+                                    <table class="table no-head">
+                                        <caption>계약내역을 설명합니다.</caption>
+                                        <colgroup>
+                                            <col style="width:206px">
+                                            <col style="width:394px">
+                                            <col style="width:206px">
+                                            <col style="width:394px">
+                                        </colgroup>
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">사업장 명​</th>
+                                                <td colspan="3"><span class="desc_txt">세종시 C3-2B/L 도시형생활주택</span>​</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">동호수​</th>
+                                                <td><span class="desc_txt">102동 1415호</span>​</td>
+                                                <th scope="row">사업장 구분​​</th>
+                                                <td><span class="desc_txt">일반​</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">평형타입</th>
+                                                <td><span class="desc_txt">18A​</span>​</td>
+                                                <th scope="row">전용면적​​</th>
+                                                <td><span class="desc_txt">18.0325m2​</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">이름</th>
+                                                <td colspan="3"><span class="desc_txt">더위버​</span>​</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">전화번호​</th>
+                                                <td><span class="desc_txt">010-111-1111</span>​</td>
+                                                <th scope="row">휴대전화번호​</th>
+                                                <td><span class="desc_txt">010-111-1111​</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">등기 주소​</th>
+                                                <td colspan="3"><span class="desc_txt">(301-758) 대전광역시 중구 오류동 삼성아파트(1~10동) 1208동 1601호 </span>​</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">연락 주소​​</th>
+                                                <td colspan="3"><span class="desc_txt">(302-859) 대전광역시 서구 탄방동 문정로48번길 48 계룡건설 시스템개발부​ </span>​</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">계약 일자​</th>
+                                                <td><span class="desc_txt">2012년 6월 21일​</span>​</td>
+                                                <th scope="row">입주 일자​</th>
+                                                <td><span class="desc_txt">2012년 6월 21일​</span>​</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div><!-- info_table -->
+                            </section>
+                            <section class="cont_section">
+                                <p class="title1">입금 정보​</p>
+                                <div class="info_table">
+                                    <table class="table no-head">
+                                        <caption>입금 정보​</caption>
+                                        <colgroup>
+                                            <col style="width:206px">
+                                            <col style="width:394px">
+                                            <col style="width:206px">
+                                            <col style="width:394px">
+                                        </colgroup>
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">은행 명​</th>
+                                                <td><span class="desc_txt">우리은행​​</span>​</td>
+                                                <th scope="row">계좌 구분​​</th>
+                                                <td><span class="desc_txt">일반​​</span>​</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">예금주​</th>
+                                                <td><span class="desc_txt">계룡건설산업(주)​​</span>​</td>
+                                                <th scope="row">계좌번호​</th>
+                                                <td><span class="desc_txt">1005-702-048494​</span>​</td>
+                                            </tr>
+                                            <!-- [D] 0830 : 컨텐츠 추가 -->
+                                            <tr>
+                                                <th scope="row">분양금액</th>
+                                                <td colspan="3"><span class="desc_txt">87,000,000원​​</span>​</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">과오납금액</th>
+                                                <td><span class="desc_txt">0원​​</span>​</td>
+                                                <th scope="row">과오납 환불 금액</th>
+                                                <td><span class="desc_txt">0원​</span>​</td>
+                                            </tr>
+                                            <!--// [D] 0830 : 컨텐츠 추가 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        </div>
+                    </div><!-- //tab_content_wrap -->
+                    <div class="tab_linker_wrap">
+                        <ul class="tab_linker">
+                            <li>
+                                <a href="#">입금 내역​</a>
+                            </li>
+                            <li class="on">
+                                <a href="#">예상 입금액​​​</a>
+                            </li>
+                        </ul>
+                    </div><!-- //tab_linker_wrap -->
+                    <div class="tab_content_wrap">
+                        <div class="tab_content">
+                            <section class="cont_section">
+                                <div class="money-search-wrap">
+                                    <!-- [D] 0830 : datepicker 관련
+                                        1. autocomplete, placeholder 추가
+                                        2. elif.datepicker();스크립트 호출
+                                    -->
+                                    <!-- [D] 0902 : select 여부에 따라 다음 select or input 결정됨. 관련 스크립트 추가 -->
+                                    <label for="datepicker" class="a11y_hide">예상 입금 일자</label>
+                                    <input type="text" id="datepicker" class="border_input sm datepicker" autocomplete="off" placeholder="예상 입금 일자">
+                                    <select name="" id="" class="sm border-select payment_lookup_selectbox_01"> 
+                                        <option value="">조회 구분</option>
+                                        <option value="1">예상 입금 차수</option>
+                                        <option value="2">예상 입금액</option>
+                                    </select>
+                                    <select name="" id="" class="sm border-select payment_lookup_selectbox_02" >
+                                        <option value="">입금 차수</option>
+                                        <option value="1">계약</option>
+                                        <option value="2">중도금1차</option>
+                                        <option value="2">중도금2차</option>
+                                        <option value="2">중도금3차</option>
+                                        <option value="2">중도금4차</option>
+                                        <option value="2">중도금5차</option>
+                                        <option value="2">잔금</option>
+                                    </select>
+                                    <input type="text" class="border_input sm tr payment_lookup_inputbox" value="0">
+                                    <button type="button" class="btn sm border">조회</button>
+                                </div>
+                                <div class="info_table board">
+                                    <table class="table normal_table">
+                                        <colgroup>
+                                            <col style="width:110px">
+                                            <col style="width:158px">
+                                            <col style="width:130px">
+                                            <col style="width:90px">
+                                            <col style="width:150px">
+                                            <col style="width:130px">
+                                            <col style="width:86px">
+                                            <col style="width:96px">
+                                            <col style="width:120px">
+                                            <col style="width:130px">
+                                        </colgroup>
+                                        <!-- <colgroup>
+                                            <col style="width:120px">
+                                            <col style="width:168px">
+                                            <col style="width:140px">
+                                            <col style="width:160px">
+                                            <col style="width:140px">
+                                            <col style="width:96px">
+                                            <col style="width:96px">
+                                            <col style="width:130px">
+                                            <col style="width:150px">
+                                        </colgroup> -->
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">차수</th>
+                                                <th scope="col">약정 일자</th> 
+                                                <th scope="col">약정 금액</th> 
+                                                <th scope="col">구분</th> 
+                                                <th scope="col">입금 일자</th> 
+                                                <th scope="col">실 납부 금액</th> 
+                                                <th scope="col">일수</th> 
+                                                <th scope="col">연체료</th> 
+                                                <th scope="col">할인료</th> 
+                                                <th scope="col">납부금액</th> 
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="tc">계약</td>
+                                                <td class="tc">2012년 6월 21일</td>
+                                                <td class="tr">8,700,000원</td>
+                                                <td class="tc">기입금</td>
+                                                <td class="tc">2012년 6월 21일</td>
+                                                <td class="tr">8,700,000원</td>
+                                                <td class="tc">0</td>
+                                                <td class="tr">0원</td>
+                                                <td class="tr">0원</td>
+                                                <td class="tr">8,700,000원</td>
+                                             </tr> 
+                                             <tr>
+                                                <td class="tc">중도금1차</td>
+                                                <td class="tc">2012년 6월 21일</td>
+                                                <td class="tr">8,700,000원</td>
+                                                <td class="tc">기입금</td>
+                                                <td class="tc">2012년 6월 21일</td>
+                                                <td class="tr">8,700,000원</td>
+                                                <td class="tc">0</td>
+                                                <td class="tr">0원</td>
+                                                <td class="tr">0원</td>
+                                                <td class="tr">8,700,000원</td>
+                                             </tr>
+                                             <tr>
+                                                <td class="tc">계약</td>
+                                                <td class="tc">2012년 6월 21일</td>
+                                                <td class="tr">8,700,000원</td>
+                                                <td class="tc">기입금</td>
+                                                <td class="tc">2012년 6월 21일</td>
+                                                <td class="tr">8,700,000원</td>
+                                                <td class="tc">0</td>
+                                                <td class="tr">0원</td>
+                                                <td class="tr">0원</td>
+                                                <td class="tr">8,700,000원</td>
+                                             </tr>  
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td class="tc">합계</td>
+                                                <td class="tr" colspan="2">8,700,000원</td>
+                                                <td class="tr" colspan="3">8,700,000원</td>
+                                                <td class="tr" colspan="2">0원</td>
+                                                <td class="tr">0원</td>
+                                                <td class="tr">8,700,000원</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                <p class="comment">※ 잔금 약정일자는 임의 지정일로 추후 입주개시 일자 확정 시 선납할인 금액은 변경될 수 있습니다.</p>  <!-- [D] 0914 : 컨텐츠 추가 -->
+                            </section>
+                            <section class="cont_section">
+                                <!-- [D] 0830 : .title1 입금내역 타이틀 제거 -->
+                                <div class="info_table board">
+                                    <table class="table normal_table">
+                                        <caption>연체할인율을 기준일자 할인율 연체율을 구분해서 설명합니다.</caption>
+                                        <colgroup>
+                                            <col span="4" style="width:25%">
+                                        </colgroup>
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">예상 통장 입금액</th>
+                                                <th scope="col">예상 납부 금액</th>
+                                                <th scope="col">예상 연체료</th>
+                                                <th scope="col">예상 할인료</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                               <td class="tr">0원</td>
+                                               <td class="tr">0원</td>
+                                               <td class="tr">0원</td>
+                                               <td class="tr">0원</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="comment">※ 잔금 약정일자는 임의 지정일로 추후 입주개시 일자 확정 시 선납할인 금액은 변경될 수 있습니다.</p>  <!-- [D] 0914 : 컨텐츠 추가 -->
+                            </section>
+                        </div>
+                    </div>
+
+                    
+                </div><!-- //contents_wrap -->
+            </div><!-- //inner -->
+
+        </main>
+        <!-- //container -->
+            <%@ include file="../include/footer.jsp" %>
+    </div>
+    <!-- //wrap -->
+    <%@ include file="../include/javascript.jsp" %>
+    <script>
+        elif.saleSearch();
+        elif.datepicker(); // [D] 0830 : script 호출 추가
+        elif.paymentLookup(); // [D] 0902 : script 호출 추가
+    </script>
+    <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+            }
+        });
+        $.ajax({
+            type : "POST",
+            url : "/project/list",
+            cache : false,
+            data : {},
+            success : function(data){
+                if(data.result==true){
+                    var options = '';
+                    $.each(data.list,function(key,value){
+                        options += '<option value="'+value.PJT_CD+'">'+value.PJT_NM+'</option>';
+                    });
+                    $('[name=pjt_cd]').append(options);
+                }else{
+                    console.log('사업장 명을 가져올 수 없습니다.')
+                }
+            },
+            error : function(data,status){
+                alert( "관리자에게 문의하시기 바랍니다." );
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="complex">
+	<!--  ! 단지코드 관리 -->
+
+
+	<!--  ! 단지 관리 -->
+	<sql id="complexPjtColumn">
+	<![CDATA[
+	(SELECT count(*) FROM RV105_CONST_PROC WHERE co_cd=rp.CO_CD AND pjt_cd=rp.PJT_CD ) const_count,
+	rp.co_cd,
+	rp.pjt_cd,
+	rp.pjt_nm,
+	rp.sllt_info_loc,
+	rp.sllt_info_sch,
+	rp.sllt_info_mibl_ym,
+	rp.sllt_info_addr_tel,
+	rp.const_scope,
+	rp.const_g_area,
+	rp.subhome_url,
+	rp.area,
+	rp.sales_date,
+	rp.region,
+	(select CODE_NAME from RV900_COM_CD where CODE_ID = rp.region) as region_name,
+	rp.households,
+	rp.housing,
+	(select CODE_NAME from RV900_COM_CD where CODE_ID = rp.housing) as housing_name,
+	rp.sales_thumb_path,
+	rp.sales_thumb_name,
+	rp.sales_thumb_origin,
+	rp.sales_main_path,
+	rp.sales_main_name,
+	rp.sales_main_origin,
+	rp.sales_status,
+	rp.sales_view_status,
+	rp.sales_reg_id,
+	(select name from RV700_ADMIN where USERID = rp.sales_reg_id) as sales_reg_nm,
+	rp.sales_reg_dtm,
+	rp.const_thumb_path,
+	rp.const_thumb_name,
+	rp.const_thumb_origin,
+	rp.const_status,
+	rp.const_view_status,
+	rp.const_reg_id,
+	(select name from RV700_ADMIN where USERID = rp.const_reg_id) as const_reg_nm,
+	rp.const_reg_dtm,
+	rp.mv_date,
+	rp.mv_thumb_path,
+	rp.mv_thumb_name,
+	rp.mv_thumb_origin,
+	rp.mv_pre_start_date,
+	rp.mv_pre_end_date,
+	rp.mv_pre_file_path,
+	rp.mv_pre_file_name,
+	rp.mv_pre_file_origin,
+	rp.mv_cert_date,
+	rp.mv_file_doc_path,
+	rp.mv_file_doc_name,
+	rp.mv_file_doc_origin,
+	rp.mv_start_date,
+	rp.mv_end_date,
+	rp.mv_reg_id,
+	(select name from RV700_ADMIN where USERID = rp.mv_reg_id) as mv_reg_nm,
+	rp.mv_reg_dtm,
+	rp.occupancy_status,
+	rp.occupancy_view_status,
+	rp.progress,
+	rp.progress_const,
+	(select CODE_NAME from RV900_COM_CD where CODE_ID = rp.progress) as progress_name,
+	rp.reservation_comment,
+	rp.visit_comment,
+	rp.code_type,
+	rp.fst_reg_dtm,
+	rp.main_sort_dtm,
+	rp.use_yn,
+	rp.regpsn_id,
+	(select name from RV700_ADMIN where USERID = rp.regpsn_id) as regpsn_nm,
+	rp.main_comment
+	]]>
+	</sql>
+
+	<sql id="complexPjtShortColumn">
+	<![CDATA[
+	(SELECT count(*) FROM RV105_CONST_PROC WHERE co_cd=rp.CO_CD AND pjt_cd=rp.PJT_CD ) const_count,
+	rp.co_cd,
+	rp.pjt_cd,
+	rp.pjt_nm,
+	rp.mv_pre_start_date,
+	rp.mv_pre_end_date,
+	rp.mv_start_date,
+	rp.mv_end_date,
+	rp.fst_reg_dtm,
+	rp.main_sort_dtm
+	]]>
+	</sql>
+	<sql id="complexPjtWhere">
+		<![CDATA[
+		AND view_div in ('A','E')
+		]]>
+		<if test="co_cd != '' and co_cd != null">
+			<![CDATA[
+			and co_cd = '${co_cd}'
+			]]>
+		</if>
+		<if test="pjt_cd != '' and pjt_cd != null">
+			<![CDATA[
+			and pjt_cd = '${pjt_cd}'
+			]]>
+		</if>
+		<if test="code_type != '' and code_type != null">
+			<![CDATA[
+			and rp.code_type = '${code_type}'
+			]]>
+		</if>
+
+		<if test="sales_status != '' and sales_status != null">
+			<![CDATA[
+			and sales_status = '${sales_status}'
+			]]>
+		</if>
+		<if test="sales_view_status != '' and sales_view_status != null">
+			<![CDATA[
+			and sales_view_status = '${sales_view_status}'
+			]]>
+		</if>
+		<if test="const_status != '' and const_status != null">
+			<![CDATA[
+			and const_status = '${const_status}'
+			]]>
+		</if>
+		<if test="const_view_status != '' and const_view_status != null">
+			<![CDATA[
+			and const_view_status = '${const_view_status}'
+			]]>
+		</if>
+		<if test="occupancy_status != '' and occupancy_status != null">
+			<![CDATA[
+			and occupancy_status = '${occupancy_status}'
+			]]>
+		</if>
+		<if test="occupancy_view_status != '' and occupancy_view_status != null">
+			<![CDATA[
+			and occupancy_view_status = '${occupancy_view_status}'
+			]]>
+		</if>
+		<if test="sales_year != '' and sales_year != null">
+			<![CDATA[
+			and length(sales_date)>4
+			and sales_date like '${sales_year}%'
+			]]>
+		</if>
+		<if test="calendar_view_status != '' and calendar_view_status != null">
+			and ${calendar_view_status}
+		</if>
+		<if test="region_array != '' and region_array != null">
+			and region IN
+			<foreach item="item" collection="region_array" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="housing_array != '' and housing_array != null">
+			and housing IN
+			<foreach item="item" collection="housing_array" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="progress_array != '' and progress_array != null">
+			and (progress IN
+			<foreach item="item" collection="progress_array" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+			<if test="progress_const != '' and progress_const != null">
+				or (progress=#{progress_code} and progress_const = #{progress_const})
+			</if>	
+			)
+		</if>
+		<if test="progress != '' and progress != null">
+			<![CDATA[
+			and progress = '${progress}'
+			]]>
+		</if>
+		
+		<if test="fst_reg_dtm != '' and fst_reg_dtm != null">
+			<![CDATA[
+			and rp.fst_reg_dtm >= '${fst_reg_dtm}'
+			]]>
+		</if>
+		<if test="main_sort_dtm != '' and main_sort_dtm != null">
+			<![CDATA[
+			and rp.main_sort_dtm >= '${main_sort_dtm}'
+			]]>
+		</if>
+		<if test="sdate != '' and sdate != null">
+			<![CDATA[
+			and TO_CHAR(rp.fst_reg_dtm, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+		</if>
+		<if test="edate != '' and edate != null">
+			<![CDATA[
+			and TO_CHAR(rp.fst_reg_dtm, 'YYYY-MM-DD') <= #{edate}
+			]]>
+		</if>
+		
+		<if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+					and (pjt_cd like '%${keyword}%' or pjt_nm like '%${keyword}%' or region like '%${keyword}%' or (select CODE_NAME from RV900_COM_CD where CODE_ID = rp.region) like '%${keyword}%')
+				</when>
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+		</if>
+		<if test="frontbool==true">
+			and rp.use_yn='Y'
+		</if>
+		
+		<if test="frontcol != '' and frontcol != null">
+			<choose>
+				<when test="frontcol == 'bfchk'">
+					<![CDATA[
+					and sysdate between rp.mv_pre_start_date and rp.mv_pre_end_date
+					]]>
+				</when>
+				<when test="frontcol == 'mibl'">
+					<![CDATA[
+					and sysdate between rp.mv_start_date and rp.mv_end_date
+					]]>
+				</when>
+			</choose>
+		</if>
+	</sql>
+	<select id="selectComplexPjtCount" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(*) as COUNT
+			FROM(  
+				SELECT
+				ROW_NUMBER() OVER (ORDER BY rp.main_sort_dtm DESC) RNUM,
+			]]>
+			<include refid="complexPjtColumn" />
+		<![CDATA[
+				FROM
+					RV100_PJT rp
+			]]>
+			<where>
+				<include refid="complexPjtWhere" />
+			</where>
+		<![CDATA[
+				) AA
+		]]>
+	</select>
+
+	<select id="selectComplexPjtList" resultType="com.krcon.elif.vo.Complex">
+		<![CDATA[
+		SELECT
+			AA.*
+		FROM(  
+			SELECT
+			ROW_NUMBER() OVER (ORDER BY rp.main_sort_dtm DESC) RNUM,
+		]]>
+		<include refid="complexPjtColumn" />
+				
+		<![CDATA[
+					FROM
+						RV100_PJT rp
+		]]>
+		<where>
+			<include refid="complexPjtWhere" />
+		</where>
+		<![CDATA[ 
+				) AA
+		]]>
+		<where>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+		</where>
+		<choose>
+			<when test="orderby != '' and orderby != null">
+				<![CDATA[
+			ORDER BY ${orderby}
+			]]>
+			</when>
+			<otherwise>
+				<![CDATA[
+			ORDER BY main_sort_dtm DESC
+			]]>
+			</otherwise>
+		</choose>
+	</select>
+	<select id="selectComplexPjtDetail" resultType="com.krcon.elif.vo.Complex">
+		<![CDATA[
+			SELECT
+			]]>
+			<include refid="complexPjtColumn" />
+		<![CDATA[
+			FROM RV100_PJT rp
+			WHERE
+				rp.co_cd=${db.cocd} and rp.pjt_cd=#{pjt_cd}
+		]]>
+	</select>
+
+	<insert id="insertComplexPjt">
+		<![CDATA[
+		INSERT INTO RV100_PJT
+		(
+			co_cd,
+			pjt_cd,
+			pjt_nm,
+			prgs_cd,
+			sllt_info_loc,
+			sllt_info_addr_tel,
+			const_scope,
+			area,
+			region,
+			households,
+			housing,
+			progress,
+			progress_const,
+			reservation_comment,
+			visit_comment,
+			code_type,
+			fst_reg_dtm,
+			use_yn,
+			regpsn_id,
+			view_div
+		)
+		VALUES
+		(
+			${db.cocd},
+			#{pjt_cd},
+			#{pjt_nm},
+			#{progress},
+			#{sllt_info_loc},
+			#{sllt_info_addr_tel},
+			#{const_scope},
+			#{area},
+			#{region},
+			#{households},
+			#{housing},
+			#{progress},
+			#{progress_const},
+			#{reservation_comment},
+			#{visit_comment},
+			#{code_type},
+			SYSDATE,
+			#{use_yn},
+			#{regpsn_id},
+			'E'
+		)
+		]]>
+	</insert>
+	<update id="updateComplexPjt">
+		<![CDATA[
+		UPDATE RV100_PJT 
+		SET
+			pjt_nm = #{pjt_nm},
+			sllt_info_loc = #{sllt_info_loc},
+			sllt_info_addr_tel = #{sllt_info_addr_tel},
+			const_scope = #{const_scope},
+			area = #{area},
+			region = #{region},
+			households = #{households},
+			housing = #{housing},
+			progress = #{progress},
+			progress_const = #{progress_const},
+			reservation_comment = #{reservation_comment},
+			visit_comment = #{visit_comment},
+			use_yn = #{use_yn},
+			updpsn_id = #{updpsn_id}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="updateComplexPjtStatus">
+		<![CDATA[
+		UPDATE RV100_PJT
+		SET
+			use_yn = #{use_yn}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="deleteComplexPjt">
+		<![CDATA[
+			DELETE FROM RV100_PJT
+			WHERE
+				co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+
+
+	<select id="selectComplexSalesYear" resultType="Integer">
+		<![CDATA[
+		SELECT 
+		DISTINCT SUBSTR(sales_date, 0, 4)
+		FROM
+			RV100_PJT  rp
+		]]>
+		<where>
+			and LENGTH (sales_date)>4
+			<if test="progress_array != '' and progress_array != null">
+				and progress IN
+				<foreach item="item" collection="progress_array" index="index" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+
+			<if test="use_yn != '' and use_yn != null">
+				<![CDATA[
+				and rp.use_yn = #{use_yn}
+				]]>
+			</if>
+		</where>
+		<![CDATA[
+		ORDER BY SUBSTR(sales_date, 0, 4) ASC
+		]]>
+	</select>
+
+	<!--  ! 단지별 수정 -->
+	<update id="updateComplexPjtSales">
+		<![CDATA[
+		UPDATE RV100_PJT 
+		SET
+			sales_date = #{sales_date},
+			]]>
+			<if test="sales_thumb_path != null">
+				sales_thumb_path = #{sales_thumb_path},
+			</if>
+			<if test="sales_thumb_name != null">
+				sales_thumb_name = #{sales_thumb_name},
+			</if>
+			<if test="sales_thumb_origin != null">
+				sales_thumb_origin = #{sales_thumb_origin},
+			</if>
+			<if test="sales_main_path != null">
+			sales_main_path = #{sales_main_path},
+			</if>
+			<if test="sales_main_name != null">
+			sales_main_name = #{sales_main_name},
+			</if>
+			<if test="sales_main_origin != null">
+			sales_main_origin = #{sales_main_origin},
+			</if>
+			<![CDATA[
+			subhome_url = #{subhome_url},
+			sales_status = #{sales_status},
+			sales_view_status = #{sales_view_status},
+			main_comment = #{main_comment},
+			sales_reg_id = #{sales_reg_id},
+			sales_reg_dtm	=	sysdate
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="updateComplexPjtSalesStatus">
+		<![CDATA[
+		UPDATE RV100_PJT
+		SET
+			sales_view_status = #{sales_view_status}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="deleteComplexPjtSales">
+		<![CDATA[
+		UPDATE RV100_PJT
+		SET
+			sales_status = #{sales_status}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+
+
+	<update id="updateComplexPjtConst">
+		<![CDATA[
+		UPDATE RV100_PJT 
+		SET
+			sllt_info_mibl_ym = #{sllt_info_mibl_ym},
+			]]>
+			<if test="const_thumb_path != null">
+				const_thumb_path = #{const_thumb_path},
+			</if>
+			<if test="const_thumb_name != null">
+				const_thumb_name = #{const_thumb_name},
+			</if>
+			<if test="const_thumb_origin != null">
+				const_thumb_origin = #{const_thumb_origin},
+			</if>
+			<![CDATA[
+			const_g_area = #{const_g_area},
+			const_status = #{const_status},
+			const_view_status = #{const_view_status},
+			const_reg_id = #{const_reg_id},
+			const_reg_dtm	=	sysdate
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="updateComplexPjtConstStatus">
+		<![CDATA[
+		UPDATE RV100_PJT
+		SET
+		const_view_status = #{const_view_status}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="updateComplexPjtSortDtm">
+		<![CDATA[
+		UPDATE RV100_PJT
+		SET
+		main_sort_dtm = #{main_sort_dtm}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="deleteComplexPjtConst">
+		<![CDATA[
+		UPDATE RV100_PJT
+		SET
+			const_status = #{const_status}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+
+
+	<update id="updateComplexPjtOccupancy">
+		<![CDATA[
+		UPDATE RV100_PJT 
+		SET
+			mv_date = #{mv_date},
+
+			]]>
+			<if test="mv_thumb_path != null">
+				mv_thumb_path = #{mv_thumb_path},
+			</if>
+			<if test="mv_thumb_name != null">
+				mv_thumb_name = #{mv_thumb_name},
+			</if>
+			<if test="mv_thumb_origin != null">
+				mv_thumb_origin = #{mv_thumb_origin},
+			</if>
+
+			<if test="mv_pre_start_date != null">
+				mv_pre_start_date = TO_DATE(#{mv_pre_start_date},'YYYY-MM-DD HH24:MI:SS'),
+			</if>
+			<if test="mv_pre_end_date != null">
+				mv_pre_end_date = TO_DATE(#{mv_pre_end_date},'YYYY-MM-DD HH24:MI:SS'),
+			</if>
+
+			<if test="mv_pre_file_path != null">
+				mv_pre_file_path = #{mv_pre_file_path},
+			</if>
+			<if test="mv_pre_file_name != null">
+				mv_pre_file_name = #{mv_pre_file_name},
+			</if>
+			<if test="mv_pre_file_origin != null">
+				mv_pre_file_origin = #{mv_pre_file_origin},
+			</if>
+			<if test="mv_cert_date != null">
+				mv_cert_date = TO_DATE(#{mv_cert_date},'YYYY-MM-DD'),
+			</if>
+			<if test="mv_file_doc_path != null">
+				mv_file_doc_path = #{mv_file_doc_path},
+			</if>
+			<if test="mv_file_doc_name != null">
+				mv_file_doc_name = #{mv_file_doc_name},
+			</if>
+			<if test="mv_file_doc_origin != null">
+				mv_file_doc_origin = #{mv_file_doc_origin},
+			</if>
+
+			<if test="mv_start_date != null">
+				mv_start_date = TO_DATE(#{mv_start_date},'YYYY-MM-DD HH24:MI:SS'),
+			</if>
+			<if test="mv_end_date != null">
+				mv_end_date = TO_DATE(#{mv_end_date},'YYYY-MM-DD HH24:MI:SS'),
+			</if>
+			<![CDATA[
+			occupancy_status = #{occupancy_status},
+			occupancy_view_status = #{occupancy_view_status},
+			mv_reg_id = #{mv_reg_id},
+			mv_reg_dtm	=	sysdate
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="updateComplexPjtOccupancyStatus">
+		<![CDATA[
+		UPDATE RV100_PJT
+		SET
+			occupancy_view_status = #{occupancy_view_status}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="deleteComplexPjtOccupancy">
+		<![CDATA[
+		UPDATE RV100_PJT
+		SET
+			sales_status = #{sales_status}
+		WHERE
+			co_cd=${db.cocd} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+
+
+
+
+	<!--  ! 단지 사진 파일 -->
+	<sql id="complexPjtFileColumn">
+		pjt_cd,
+		original_file_name,
+		stored_file_name,
+		file_size,
+		file_gubun,
+		file_sort,
+		path_name,
+		crea_dtm
+	</sql>
+
+	<sql id="complexPjtFileWhere">
+
+		<if test="pjt_cd != '' and pjt_cd != null">
+			<![CDATA[
+			and pjt_cd = '${pjt_cd}'
+			]]>
+		</if>
+		<if test="file_gubun != '' and file_gubun != null">
+			<![CDATA[
+			and file_gubun = '${file_gubun}'
+			]]>
+		</if>
+	</sql>
+	<select id="selectComplexPjtFileCount" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(*) as COUNT
+			FROM
+				RV100_PJT_FILE
+			]]>
+
+		<where>
+			<include refid="complexPjtFileWhere" />
+		</where>
+	</select>
+
+	<select id="selectComplexPjtFileList" resultType="com.krcon.elif.vo.ComplexFile">
+		<![CDATA[
+				SELECT
+					AA.*
+				FROM(  
+					SELECT
+						idx,
+				]]>
+				<include refid="complexPjtFileColumn" />
+		<![CDATA[
+					FROM
+						RV100_PJT_FILE
+			]]>
+		<where>
+			<include refid="complexPjtFileWhere" />
+		</where>
+		<![CDATA[
+				) AA
+		]]>
+		<choose>
+			<when test="orderby != '' and orderby != null">
+				<![CDATA[
+			ORDER BY ${orderby}
+			]]>
+			</when>
+			<otherwise>
+				<![CDATA[
+			ORDER BY file_sort ASC
+			]]>
+			</otherwise>
+		</choose>
+
+	</select>
+	<select id="selectComplexPjtFileDetail" resultType="com.krcon.elif.vo.ComplexFile">
+		<![CDATA[
+			SELECT
+			]]>
+			<include refid="complexPjtFileColumn" />
+		<![CDATA[
+			FROM
+				RV100_PJT_FILE
+			WHERE
+				IDX = #{idx}        
+		]]>
+	</select>
+	<insert id="insertComplexPjtFile" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV100_PJT_FILE_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO RV100_PJT_FILE
+			(
+				idx,
+				co_cd,
+				pjt_cd,
+				original_file_name,
+				stored_file_name,
+				file_size,
+				file_gubun,
+				file_sort,
+				path_name,
+				crea_dtm
+			)
+			VALUES
+			(
+				#{idx},
+				${db.cocd},
+				#{pjt_cd},
+				#{original_file_name},
+				#{stored_file_name},
+				#{file_size},
+				#{file_gubun},
+				#{file_sort},
+				#{path_name},
+				sysdate
+			)
+		]]>
+	</insert>
+
+	<update id="updateComplexPjtFile">
+		<![CDATA[
+			UPDATE RV100_PJT_FILE
+			SET
+				pjt_cd = #{pjt_cd},
+				original_file_name = #{original_file_name},
+				stored_file_name = #{stored_file_name},
+				file_size = #{file_size},
+				file_gubun = #{file_gubun},
+				file_sort = #{file_sort},
+				path_name = #{path_name},
+			WHERE
+				IDX = #{idx}    
+		]]>
+	</update>
+	<update id="deleteComplexPjtFile">
+		<![CDATA[
+			DELETE FROM RV100_PJT_FILE
+				
+		]]>
+		<where>
+			AND IDX = #{idx}
+		</where>
+	</update>
+	
+
+
+
+
+	<!--  ! 공사단지 상세정보 자식 리스트 -->
+	<sql id="complexPjtConstChildColumn">
+		<include refid="complexPjtColumn"></include>
+		<![CDATA[
+		,
+		(SELECT count(*) FROM RV105_CONST_FILE rcf WHERE rcf.PJT_CD = rcp.PJT_CD AND rcf.CONST_PROC_DT = rcp.CONST_PROC_DT) AS fileCount,
+		rcp.const_proc_dt,
+		rcp.const_rmks,
+		rcp.const_proc_rate,
+		rcp.status,
+		rcp.fst_reg_dtm as const_fst_reg_dtm,
+		rcp.regpsn_id as const_regpsn_id,
+		(select name from RV700_ADMIN where USERID = rcp.regpsn_id) as const_regpsn_nm,
+		rcp.fnl_upd_dtm as const_fnl_upd_dtm,
+		rcp.updpsn_id as const_updpsn_id
+		]]>
+	</sql>
+
+	<sql id="complexPjtConstChildWhere">
+
+		<if test="pjt_cd != '' and pjt_cd != null">
+			<![CDATA[
+			and rp.pjt_cd = '${pjt_cd}'
+			]]>
+		</if>
+		<if test="const_proc_dt != '' and const_proc_dt != null">
+			<![CDATA[
+			and const_proc_dt = '${const_proc_dt}'
+			]]>
+		</if>
+		<if test="code_type != '' and code_type != null">
+			<![CDATA[
+			and code_type = '${code_type}'
+			]]>
+		</if>
+		<if test="status != '' and status != null">
+			<![CDATA[
+			and status = '${status}'
+			]]>
+		</if>
+		<if test="sdate != '' and sdate != null">
+			<![CDATA[
+			and TO_CHAR(rcp.CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+		</if>
+		<if test="edate != '' and edate != null">
+			<![CDATA[
+			and TO_CHAR(rcp.CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+			]]>
+		</if>
+		<if test="const_view_status != '' and const_view_status != null">
+			and rp.const_view_status = #{const_view_status}
+		</if>
+		<if test="progress_array != '' and progress_array != null">
+			and progress IN
+			<foreach item="item" collection="progress_array" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</sql>
+	<select id="selectComplexPjtConstChildCount" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(*) as COUNT
+			FROM(  
+				SELECT
+					ROW_NUMBER() OVER (ORDER BY const_proc_dt DESC) RNUM,
+			]]>
+			<include refid="complexPjtConstChildColumn" />
+		<![CDATA[
+					FROM
+						RV105_CONST_PROC rcp
+						LEFT JOIN RV100_PJT rp ON rcp.pjt_cd=rp.pjt_cd AND rcp.pjt_cd=rp.pjt_cd
+			]]>
+			<where>
+			<include refid="complexPjtConstChildWhere" />
+			</where>
+		<![CDATA[
+				) AA
+		]]>
+	</select>
+
+	<select id="selectComplexPjtConstChildList" resultType="com.krcon.elif.vo.ComplexConstChild">
+		<![CDATA[
+				SELECT
+					AA.*
+				FROM(  
+					SELECT
+						ROW_NUMBER() OVER (ORDER BY const_proc_dt DESC) RNUM,
+				]]>
+				<include refid="complexPjtConstChildColumn" />
+		<![CDATA[
+					FROM
+						RV105_CONST_PROC rcp
+						LEFT JOIN RV100_PJT rp ON rcp.pjt_cd=rp.pjt_cd
+		]]>
+		<where>
+			<include refid="complexPjtConstChildWhere" />
+		</where>
+		<![CDATA[ 
+				) AA
+		]]>
+		<where>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+		</where>
+		<choose>
+			<when test="orderby != '' and orderby != null">
+				<![CDATA[
+			ORDER BY ${orderby}
+			]]>
+			</when>
+			<otherwise>
+				<![CDATA[
+			ORDER BY const_proc_dt DESC
+			]]>
+			</otherwise>
+		</choose>
+	</select>
+	<select id="selectComplexPjtConstChildDetail" resultType="com.krcon.elif.vo.ComplexConstChild">
+		<![CDATA[
+			SELECT
+			]]>
+			<include refid="complexPjtConstChildColumn" />
+		<![CDATA[
+			FROM
+				RV105_CONST_PROC rcp
+				LEFT JOIN RV100_PJT rp ON rcp.pjt_cd=rp.pjt_cd
+			WHERE
+			rcp.co_cd = ${db.cocd} and rcp.pjt_cd=#{pjt_cd} and rcp.const_proc_dt=#{const_proc_dt}
+		]]>
+	</select>
+	
+	<insert id="insertComplexPjtConstChild">
+		<![CDATA[
+			INSERT INTO RV105_CONST_PROC
+			(
+				co_cd,
+				pjt_cd,
+				const_proc_dt,
+				const_proc_rate,
+				regpsn_id,
+				status,
+				fst_reg_dtm
+			)
+			VALUES
+			(
+				${db.cocd},
+				#{pjt_cd},
+				#{const_proc_dt},
+				#{const_proc_rate},
+				#{regpsn_id},
+				#{status},
+				sysdate
+			)
+		]]>
+	</insert>
+
+	<update id="updateComplexPjtConstChild">
+			UPDATE RV105_CONST_PROC
+			SET
+			const_proc_dt	=	#{const_proc_dt},
+			const_proc_rate	=	#{const_proc_rate},
+			updpsn_id	=	#{updpsn_id},
+			status	=	#{status},
+			fnl_upd_dtm	=	fnl_upd_dtm
+			WHERE
+			const_proc_dt = #{const_proc_dt} and pjt_cd=#{pjt_cd}
+	</update>
+	<update id="updateComplexPjtConstChildStatus">
+		<![CDATA[
+		UPDATE RV105_CONST_PROC
+		SET
+			status = #{status}
+		WHERE
+			const_proc_dt = #{const_proc_dt} and pjt_cd=#{pjt_cd}
+		]]>
+	</update>
+	<update id="deleteComplexPjtConstChild">
+		<![CDATA[
+			DELETE FROM RV105_CONST_PROC
+			WHERE const_proc_dt = #{const_proc_dt} and pjt_cd=#{pjt_cd}
+				
+		]]>
+	</update>
+
+
+
+	<!--  ! 공사 단지 사진 파일 -->
+	<sql id="complexPjtConstFileColumn">
+		pjt_cd,
+		original_file_name,
+		stored_file_name,
+		file_size,
+		file_gubun,
+		file_sort,
+		path_name,
+		crea_dtm
+	</sql>
+
+	<sql id="complexPjtConstFileWhere">
+
+		<if test="pjt_cd != '' and pjt_cd != null">
+			<![CDATA[
+			and pjt_cd = '${pjt_cd}'
+			]]>
+		</if>
+		<if test="file_gubun != '' and file_gubun != null">
+			<![CDATA[
+			and file_gubun = '${file_gubun}'
+			]]>
+		</if>
+		<if test="const_proc_dt != '' and const_proc_dt != null">
+			<![CDATA[
+			and const_proc_dt = '${const_proc_dt}'
+			]]>
+		</if>
+	</sql>
+	<select id="selectComplexPjtConstFileCount" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(*) as COUNT
+			FROM
+				RV105_CONST_FILE
+			]]>
+
+		<where>
+			<include refid="complexPjtConstFileWhere" />
+		</where>
+	</select>
+
+	<select id="selectComplexPjtConstFileList" resultType="com.krcon.elif.vo.ComplexFile">
+		<![CDATA[
+				SELECT
+					AA.*
+				FROM(  
+					SELECT
+						idx,
+				]]>
+				<include refid="complexPjtConstFileColumn" />
+		<![CDATA[
+					FROM
+						RV105_CONST_FILE
+			]]>
+		<where>
+			<include refid="complexPjtConstFileWhere" />
+		</where>
+		<![CDATA[
+				) AA
+		]]>
+		<choose>
+			<when test="orderby != '' and orderby != null">
+				<![CDATA[
+			ORDER BY ${orderby}
+			]]>
+			</when>
+			<otherwise>
+				<![CDATA[
+			ORDER BY file_sort ASC
+			]]>
+			</otherwise>
+		</choose>
+
+	</select>
+	<select id="selectComplexPjtConstFileDetail" resultType="com.krcon.elif.vo.ComplexConstFile">
+		<![CDATA[
+			SELECT
+			]]>
+			<include refid="complexPjtConstFileColumn" />
+		<![CDATA[
+			FROM
+				RV105_CONST_FILE
+			WHERE
+				IDX = #{idx}        
+		]]>
+	</select>
+	<insert id="insertComplexPjtConstFile" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV105_CONST_FILE_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO RV105_CONST_FILE
+			(
+				idx,
+				co_cd,
+				pjt_cd,
+				const_proc_dt,
+				original_file_name,
+				stored_file_name,
+				file_size,
+				file_gubun,
+				file_sort,
+				path_name,
+				crea_dtm
+			)
+			VALUES
+			(
+				#{idx},
+				${db.cocd},
+				#{pjt_cd},
+				#{const_proc_dt},
+				#{original_file_name},
+				#{stored_file_name},
+				#{file_size},
+				#{file_gubun},
+				#{file_sort},
+				#{path_name},
+				sysdate
+			)
+		]]>
+	</insert>
+
+	<update id="updateComplexPjtConstFile">
+		<![CDATA[
+			UPDATE RV105_CONST_FILE
+			SET
+				pjt_cd = #{pjt_cd},
+				original_file_name = #{original_file_name},
+				stored_file_name = #{stored_file_name},
+				file_size = #{file_size},
+				file_gubun = #{file_gubun},
+				file_sort = #{file_sort},
+				path_name = #{path_name},
+			WHERE
+				IDX = #{idx}    
+		]]>
+	</update>
+	<update id="deleteComplexPjtConstFile">
+		<![CDATA[
+			DELETE FROM RV105_CONST_FILE
+				
+		]]>
+		<where>
+			AND IDX = #{idx}
+		</where>
+	</update>
+</mapper>

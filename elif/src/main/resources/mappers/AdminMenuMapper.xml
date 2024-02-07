@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="adminMenu">
+	<select id="selectMenu" resultType="com.krcon.elif.vo.AdminMenu">
+	    <![CDATA[
+		SELECT
+			IDX,
+			PARENT_IDX,
+			NAME,
+			LTRIM ( SYS_CONNECT_BY_PATH ( NAME, ' > ' ), ' > ' ) AS DEPTH_FULLNAME,
+			URL,
+			SORT,
+			LEVEL
+		FROM
+			RV708_MENUS
+		START WITH
+			idx = 1
+		CONNECT BY
+			PRIOR IDX = PARENT_IDX 
+		ORDER SIBLINGS BY IDX ASC, PARENT_IDX ASC, SORT ASC
+	    ]]>
+	</select>
+	<select id="selectMenuList" resultType="com.krcon.elif.vo.AdminMenu">
+	    <![CDATA[
+	        SELECT
+	            IDX,
+	            PARENT_IDX,
+	            NAME,
+	            URL,
+	            SORT,
+	            STATUS,
+	            USERID,
+	            CREA_DTM
+	        FROM
+	            RV708_MENUS
+	        WHERE
+				1=1 
+			ORDER BY PARENT_IDX,SORT ASC
+	    ]]>
+	</select>
+	<select id="selectMenuDetail" parameterType="hashmap" resultType="hashmap">
+	    <![CDATA[
+	        SELECT
+	            IDX,
+	            PARENT_IDX,
+	            NAME,
+	            URL,
+	            SORT,
+	            STATUS,
+	            USERID,
+	            CREA_DTM
+	        FROM
+	            RV708_MENUS
+	        WHERE
+	            IDX = #{pid}        
+	    ]]>
+	</select>
+	
+	<insert id="insertMenu" parameterType="hashmap" useGeneratedKeys="true" keyProperty="idx">
+	    <selectKey keyProperty="idx" resultType="int" order="BEFORE">
+	        SELECT RV708_MENUS_IDX.NEXTVAL FROM DUAL
+	    </selectKey>
+	    <![CDATA[
+	        INSERT INTO RV708_MENUS
+	        (
+				idx
+	            PARENT_IDX,
+	            NAME,
+	            URL,
+	            SORT,
+	            USERID,
+	            CREA_DTM
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{parent_idx},
+	            #{name},
+	            #{url},
+	            #{sort},
+	            #{userid},
+	            SYSDATE
+	        )
+	    ]]>
+	</insert>
+	<update id="updateMenuSort" parameterType="hashmap">
+	    <![CDATA[
+	        UPDATE RV708_MENUS SET
+	            SORT = #{sort}
+	        WHERE
+	            IDX = #{idx}   
+	    ]]>
+	</update>
+	<update id="updateMenu" parameterType="hashmap">
+	    <![CDATA[
+	        UPDATE RV708_MENUS SET
+	            NAME = #{name},
+	            SORT = #{sort},
+	            URL = #{url}
+	        WHERE
+	            IDX = #{idx}   
+	    ]]>
+	</update>
+	<update id="deleteMenu" parameterType="hashmap">
+	    <![CDATA[
+	        DELETE FROM RV708_MENUS
+	        WHERE
+	            IDX = #{idx}  
+	    ]]>
+	</update>
+	
+</mapper>

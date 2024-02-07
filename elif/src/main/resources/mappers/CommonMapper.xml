@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="common">
+	<sql id="pagingPre">
+	    <![CDATA[
+	        SELECT
+	            AAA.*
+	        FROM(
+	            SELECT
+	                COUNT(*) OVER() AS TOTAL_COUNT,
+	                AA.*
+	            FROM(  
+	    ]]>
+	</sql>
+	 
+	<sql id="pagingPost">
+	    <![CDATA[
+	            ) AA
+	        ) AAA
+	        WHERE
+	            AAA.RNUM BETWEEN #{START} AND #{END}
+	    ]]>
+	</sql>
+	 <select id="selectFileInfo" parameterType="hashmap" resultType="hashmap">
+	    <![CDATA[
+	        SELECT
+	            STORED_FILE_NAME,
+	            ORIGINAL_FILE_NAME,
+	            PATH_NAME
+	        FROM
+	        
+		    ]]>
+			<choose>
+				<when test="BOARD_NAME != null">
+				TBL_${BOARD_NAME}_FILE
+				</when> 
+				<otherwise>
+				RV724_BOARD_FILE
+				</otherwise>
+			</choose>
+		<![CDATA[
+	            
+	        WHERE
+	            IDX = #{IDX}
+	    ]]>
+	</select>
+	<update id="updateDownloadCnt">
+	    <![CDATA[
+	        UPDATE 
+
+		    ]]>
+			<choose>
+				<when test="BOARD_NAME != null">
+				TBL_${BOARD_NAME}_FILE
+				</when> 
+				<otherwise>
+				RV724_BOARD_FILE
+				</otherwise>
+			</choose>
+		<![CDATA[ 
+	        SET
+	            DOWNLOAD = ifnull(DOWNLOAD, 0) + 1
+	        WHERE
+	            IDX = #{IDX}    
+	    ]]>
+	</update>
+</mapper>

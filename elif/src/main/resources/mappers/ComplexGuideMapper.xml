@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="complexGuide">
+	<!--  ! 분양가이드 -->
+	<!--  ! 분양 가이드 -->
+	<sql id="complexGuideColumn">
+		type,
+		type_name,
+		comments,
+		status,
+		crea_id,
+		crea_name,
+		crea_dtm,
+		upda_id,
+		upda_name,
+		upda_dtm
+	</sql>
+
+	<sql id="complexGuideWhere">
+		<if test="type != '' and type != null">
+			<![CDATA[
+			and type = '${type}'
+			]]>
+		</if>
+		<if test="sdate != '' and sdate != null">
+			<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+		</if>
+		<if test="edate != '' and edate != null">
+			<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+			]]>
+		</if>
+	</sql>
+	<select id="selectComplexGuideCount" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(*) as COUNT
+			FROM
+				RV735_COMPLEX_GUIDE
+			]]>
+
+		<where>
+			<include refid="complexGuideWhere" />
+		</where>
+	</select>
+
+	<select id="selectComplexGuideList" resultType="com.krcon.elif.vo.ComplexGuide">
+		<![CDATA[
+				SELECT
+					AA.*
+				FROM(  
+					SELECT
+						idx,
+						ROW_NUMBER() OVER (ORDER BY idx DESC) RNUM,
+				]]>
+				<include refid="complexGuideColumn" />
+		<![CDATA[
+					FROM
+						RV735_COMPLEX_GUIDE
+			]]>
+		<where>
+			<include refid="complexGuideWhere" />
+		</where>
+		<![CDATA[
+				) AA
+		]]>
+		<choose>
+			<when test="orderby != '' and orderby != null">
+				<![CDATA[
+			ORDER BY ${orderby}
+			]]>
+			</when>
+			<otherwise>
+				<![CDATA[
+			ORDER BY idx ASC
+			]]>
+			</otherwise>
+		</choose>
+
+	</select>
+	<select id="selectComplexGuideDetail" resultType="com.krcon.elif.vo.ComplexGuide">
+		<![CDATA[
+			SELECT
+				idx,
+			]]>
+			<include refid="complexGuideColumn" />
+		<![CDATA[
+			FROM
+				RV735_COMPLEX_GUIDE
+			WHERE
+				IDX = #{idx}        
+		]]>
+	</select>
+	<insert id="insertComplexGuide" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV735_COMPLEX_GUIDE_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO RV735_COMPLEX_GUIDE
+			(
+				idx,
+				type,
+				type_name,
+				comments,
+				status,
+				crea_id,
+				crea_name,
+				crea_dtm
+			)
+			VALUES
+			(
+				#{idx},
+				#{type},
+				#{type_name},
+				#{comments},
+				#{status},
+				#{crea_id},
+				#{crea_name},
+				sysdate
+			)
+		]]>
+	</insert>
+
+	<update id="updateComplexGuide">
+			UPDATE RV735_COMPLEX_GUIDE
+			SET
+				type = #{type},
+				comments = #{comments},
+				status = #{status},
+				<if test="crea_name != '' and crea_name != null">
+					crea_id = #{crea_id},
+					crea_name = #{crea_name},
+					crea_dtm	=	sysdate
+				</if>
+				<if test="upda_name != '' and upda_name != null">
+					upda_id = #{upda_id},
+					upda_name = #{upda_name},
+					upda_dtm	=	sysdate
+				</if>
+			WHERE
+				IDX = #{idx}
+	</update>
+	<update id="updateComplexGuideStatus">
+			UPDATE RV735_COMPLEX_GUIDE
+			SET
+				status = #{status}
+			WHERE
+				IDX = #{idx}
+	</update>
+	<update id="deleteComplexGuide">
+		<![CDATA[
+			DELETE FROM RV735_COMPLEX_GUIDE
+				
+		]]>
+		<where>
+			AND IDX = #{idx}
+		</where>
+	</update>
+</mapper>

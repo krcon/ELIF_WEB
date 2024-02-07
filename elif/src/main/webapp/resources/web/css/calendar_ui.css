@@ -1,0 +1,136 @@
+div{box-sizing: border-box;}
+.total-box{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 20px;
+    box-sizing: border-box;
+
+}
+.calendar-box{
+    border:1px solid #ddd;
+    padding:20px;
+}
+.day-box{
+    border:1px solid #ddd;
+    padding:20px;
+}
+
+.n-title{
+    font-size: 18px;
+    margin-bottom:15px;
+}
+.select-day{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    padding:15px 0;
+}
+.select-day-pre{
+    text-align: right;
+}
+.select-day-title{
+    text-align: center;
+    font-size: 17px;
+}
+.select-day-next{
+    text-align: left;
+}
+.new-calendar{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+}
+.new-calendar div{
+    text-align: center;
+    align-items: center;
+    padding:10px;
+    font-size: 15px;
+    border:1px solid #f1f1f1;
+    margin:1px;
+    cursor: pointer;
+}
+.new-calendar :nth-child(7n){
+    color: rgb(0, 110, 255);
+}
+.new-calendar :nth-child(7n+1){
+    color: rgb(207, 0, 0);
+}
+.new-calendar div.day-name{
+    cursor:default ;
+    background-color:#054438 ;
+    border:1px solid #054438;
+    color:#fff;
+}
+.new-calendar div.not-day{
+    background-color: #f1f1f1;
+}
+.new-calendar div.check-day{
+    background-color:#5f8a83 ;
+    border:1px solid #5f8a83;
+    color:#fff;
+}
+.new-calendar div.out-day{
+    background-color: #f1f1f1;
+    color:#ccc;
+}
+
+.info-text{
+    font-size: 14px;
+    font-weight: 200;
+    margin-top: 15px;;
+}
+
+.reser{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 10px;
+    row-gap: 5px;
+}
+.reser div{
+    text-align: center;
+    align-items: center;
+    padding:15px;
+    font-size: 15px;
+    border:1px solid #eee;
+    margin:1px;
+}
+.reser div:hover:not(.disabled){
+    background-color:#5f8a83 ;
+    color:#fff;
+    transition: 0.5s;
+    cursor: pointer;
+}
+.reser div.click{
+    background-color:#054438 ;
+    color:#fff;
+    transition: 0.5s;
+}
+
+.reser div.disabled{
+    color:#ccc;
+}
+
+
+@media (max-width: 576px) {
+    .total-box{
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 370px) {
+
+    .calendar-box{
+        padding:0px;
+    }
+    .day-box{
+        padding:0px;
+    }
+    .n-title{
+        padding:10px;
+    }
+    .info-text{
+        font-size: 14px;
+        font-weight: 200;
+        padding:10px;
+    }
+}

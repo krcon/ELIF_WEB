@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="code">
+	<select id="selectCode" resultType="com.krcon.elif.vo.Code">
+	    <![CDATA[
+			SELECT
+				co_cd,
+				code_group,
+				code_id,
+				code_name,
+				code_eng_name,
+				code_abbr_name,
+				code_desc,
+				code_seq,
+				code_group_flag,
+				use_flag,
+				chrc_prpy1,
+				chrc_prpy2,
+				chrc_prpy3,
+				no_prpy1,
+				no_prpy2,
+				no_prpy3,
+				fst_reg_dtm,
+				regpsn_id,
+				fnl_upd_dtm,
+				updpsn_id
+			FROM
+				RV900_COM_CD
+		]]>
+		<where>
+			<if test="code_group != null">
+				<![CDATA[
+				and code_group = '${code_group}'
+				]]>
+			</if>
+			<if test="code_group_flag != null">
+				<![CDATA[
+				and code_group_flag = '${code_group_flag}'
+				]]>
+			</if>
+		<if test="code_array != '' and code_array != null">
+			and code_id IN
+			<foreach item="item" collection="code_array" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		</where>
+		<![CDATA[
+			ORDER BY
+				code_group asc,
+				code_id asc
+	    ]]>
+	</select>
+	
+	<insert id="insertCode" parameterType="hashmap" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV900_COM_CD_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+	    <![CDATA[
+	        INSERT INTO RV900_COM_CD
+	        (
+				co_cd,
+				code_group,
+				code_id,
+				code_name,
+				fnl_reg_dtm
+	        )
+	        VALUES
+	        (
+				${db.cocd},
+	            #{code_group},
+	            #{code_id},
+	            #{code_name},
+	            SYSDATE
+	            
+	        )
+	    ]]>
+	</insert>
+	<update id="updateCode" parameterType="hashmap">
+	    <![CDATA[
+	        UPDATE RV900_COM_CD SET
+	            code_name = #{code_name}
+	        WHERE
+				code_id = #{code_id}   
+	    ]]>
+	</update>
+	<update id="deleteCode" parameterType="hashmap">
+	    <![CDATA[
+	        DELETE FROM RV900_COM_CD
+	        WHERE
+				code_id = #{code_id}  
+	    ]]>
+	</update>
+	
+</mapper>

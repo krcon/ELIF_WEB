@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="adminMember">
+
+	<sql id="customerWhere">
+		<where>
+			<![CDATA[
+				withdraw = 'N'
+			]]>
+			<if test="keyword != '' and keyword != null">
+				<choose>
+					<when test="target == 'all'">
+					and (NAME like '%${keyword}%' OR EMAIL like '%${keyword}%' OR USERID like '%${keyword}%')
+					</when> 
+					<otherwise>
+					and ${target} like '%${keyword}%'
+					</otherwise>
+				</choose>
+			</if>
+			<if test="sdate != '' and sdate != null">
+				<![CDATA[
+				and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= #{sdate}
+				]]>
+			</if>
+			<if test="edate != '' and edate != null">
+				<![CDATA[
+				and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= #{edate}
+				]]>
+			</if>
+		</where>
+	</sql>
+	<select id="selectMemberCount" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(*) as CNT
+	        FROM
+	            RV700_ADMIN
+		    ]]>
+			<include refid="customerWhere" />
+	</select>
+	<select id="selectMemberList" resultType="com.krcon.elif.vo.Account">
+	    <![CDATA[
+		SELECT
+			COUNT(*) OVER() AS TOTAL_COUNT,
+			AA.*
+		FROM(  
+	        SELECT
+				ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+	            idx,
+	            userid,
+	            name,
+	            email,
+	            enumber,
+				isAccountNonExpired,
+				isAccountNonLocked,
+				isCredentialsNonExpired,
+				isEnabled,
+	            department,
+	            grants,
+	            menus,
+	            start_dtm,
+	            end_dtm,
+	            crea_dtm,
+	            login_dtm,
+	            pass_dtm,
+	            authsec_dtm,
+	            login_ip,
+				withdraw
+	        FROM
+	            RV700_ADMIN
+			]]>
+			<include refid="customerWhere" />
+			<![CDATA[
+			
+			) AA
+		    ]]>
+			<where>
+			<if test="end != '' and end != null">
+			<![CDATA[
+				AND RNUM BETWEEN #{start} AND #{end}
+			]]>
+			</if>
+			</where>
+		<![CDATA[
+		ORDER BY CREA_DTM DESC
+	    ]]>
+		
+	</select>
+	<insert id="insertMember" useGeneratedKeys="true" keyProperty="idx">
+	    <selectKey keyProperty="idx" resultType="int" order="BEFORE">
+	        SELECT RV700_ADMIN_IDX.NEXTVAL FROM DUAL
+	    </selectKey>
+	    <![CDATA[
+	        
+	        INSERT INTO RV700_ADMIN
+	        (
+				idx,
+	            userid, 
+	            name, 
+	            email, 
+	            enumber,
+	            password, 
+	            department, 
+	            grants, 
+	            menus, 
+	            isEnabled, 
+	            isAccountNonExpired, 
+	            isAccountNonLocked, 
+	            isCredentialsNonExpired, 
+	            start_dtm,
+	            end_dtm,
+				crea_id,
+				crea_name,
+	            crea_dtm
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{userid}, 
+	            #{name}, 
+	            #{email}, 
+	            #{enumber}, 
+	            #{password},
+	            #{department},
+	            #{grants},
+	            #{menus},
+	            #{enabled},
+	            1, 
+	            0, 
+	            1, 
+	            #{start_dtm},
+	            #{end_dtm},
+	            #{crea_id},
+	            #{crea_name},
+	            SYSDATE
+	        )
+	    ]]>
+	</insert>
+	<insert id="insertMemberAuth" useGeneratedKeys="true">
+	    <selectKey keyProperty="idx" resultType="int" order="BEFORE">
+	        SELECT RV701_ADMIN_AUTH_IDX.NEXTVAL FROM DUAL
+	    </selectKey>
+	    <![CDATA[
+	        
+	        INSERT INTO RV701_ADMIN_AUTH
+	        (
+				id,
+	            userid, 
+	            authority_name
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{userid}, 
+	            #{authority_name}
+	        )
+	    ]]>
+	</insert>
+	<select id="selectMemberDetail" resultType="com.krcon.elif.vo.Account">
+	    <![CDATA[
+	        SELECT
+	            idx,
+	            userid,
+	            password,
+	            name,
+	            email,
+	            enumber,
+	            department,
+	            grants,
+	            menus,
+	            crea_dtm,
+				isEnabled,
+				isAccountNonExpired,
+				isAccountNonLocked,
+				isCredentialsNonExpired,
+	            start_dtm,
+	            end_dtm,
+	            login_dtm,
+	            pass_dtm,
+	            authsec_dtm,
+	            crea_id,
+	            crea_name,
+	            crea_dtm,
+	            upda_id,
+	            upda_name,
+	            upda_dtm,
+	            login_ip
+	        FROM
+	            RV700_ADMIN
+	        WHERE
+				]]>
+
+			<choose>
+				<when test="userid != '' and userid != null">
+				userid = #{userid}
+				</when> 
+				<when test="email != '' and email != null">
+				email = #{email}
+				</when> 
+				<otherwise>
+				idx = #{idx}
+				</otherwise>
+			</choose>
+			<if test="withdraw != '' and withdraw != null">
+			and withdraw = #{withdraw}
+			</if> 
+			<if test="enabled != '' and enabled != null">
+			and isEnabled = #{enabled}
+			</if> 
+	</select>
+	
+	<select id="selectMemberTokenDetail" resultType="com.krcon.elif.vo.Account">
+	    <![CDATA[
+	        SELECT
+	            idx,
+	            userid,
+				password,
+				isEnabled,
+				isAccountNonExpired,
+				isAccountNonLocked,
+				isCredentialsNonExpired,
+	            token_dtm
+	        FROM
+	            RV700_ADMIN
+	        WHERE
+	        	token = #{token}
+				]]>
+	</select>
+	
+	<select id="emailSearch" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(*) as COUNT
+	        FROM
+	            RV700_ADMIN
+	        WHERE
+	        ]]>
+			<choose>
+				<when test="email != '' and email != null">
+				email = #{email}
+				</when> 
+				<otherwise>
+				userid = #{userid}
+				</otherwise>
+			</choose>
+	</select>
+	<select id="loginAuth" parameterType="string" resultType="String">
+	    <![CDATA[
+	       SELECT authority_name FROM RV701_ADMIN_AUTH WHERE userid=#{email}
+    	]]>
+	</select>
+	<select id="login" resultType="com.krcon.elif.vo.Account">
+	    <![CDATA[
+	        SELECT
+	            idx,
+	            userid,
+	            email,
+	            enumber,
+	            password,
+	            name,
+	            department,
+	            grants,
+	            login_ip, 
+	            menus, 
+				loginFailCnt,
+				isAccountNonExpired,
+				isAccountNonLocked,
+				isCredentialsNonExpired,
+				isEnabled,
+	            imsi_dtm,
+	            start_dtm,
+	            end_dtm,
+	            crea_dtm,
+	            authsec_dtm,
+	            pass_dtm,
+	            login_dtm
+	        FROM
+	            RV700_ADMIN
+	        WHERE
+	            userid = #{userid}
+				and withdraw = 'N'    
+	    ]]>
+	</select>
+	
+	<update id="updateMember">
+	    	<![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	            enumber = #{enumber},
+	            upda_id = #{upda_id},
+	            upda_name = #{upda_name},
+	            upda_dtm = SYSDATE,
+			]]>
+			<if test="email != '' and email != null">
+			<![CDATA[
+				email = #{email},
+			]]>
+			</if>
+			<if test="name != '' and name != null">
+			<![CDATA[
+				name = #{name},
+			]]>
+			</if>
+			<![CDATA[
+			department = #{department}
+			]]>
+			<if test="enabled != null">
+			<![CDATA[
+				,isEnabled = #{enabled}
+			]]>
+			</if>
+			<if test="menus != '' and menus != null">
+			<![CDATA[
+				,menus = #{menus}
+			]]>
+			</if>
+			<if test="grants != '' and grants != null">
+			<![CDATA[
+				,grants = #{grants}
+			]]>
+			</if>
+			<if test="start_dtm != null">
+			<![CDATA[
+				,start_dtm = #{start_dtm}
+			]]>
+			</if>
+			<if test="end_dtm != null">
+			<![CDATA[
+				,end_dtm = #{end_dtm}
+			]]>
+			</if>
+			<if test="password != '' and password != null">
+			<![CDATA[
+				,password = #{password}
+			]]>
+			</if>
+            <![CDATA[
+        	WHERE
+            	idx = #{idx}    
+    		]]>
+	    		
+	</update>
+	<update id="updateLogin">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	        	loginFailCnt = 0,
+	        	loginCnt = loginCnt + 1,
+	        	login_ip = #{login_ip},
+	            login_dtm = SYSDATE,
+	            imsi_dtm = null
+	        WHERE
+	            userid = #{userid}    
+	    ]]>
+	</update>
+	<update id="updateFailLogin">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	        	loginFailCnt = ${loginFailCnt}
+	        WHERE
+	            userid = #{userid}    
+	    ]]>
+	</update>
+	<update id="updateToken">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	        	token = #{token},
+	            token_dtm = SYSDATE
+	        WHERE
+	            userid = #{userid}    
+	    ]]>
+	</update>
+	<update id="updateLoginAuth">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	            authsec_dtm = SYSDATE
+	        WHERE
+	            userid = #{userid}    
+	    ]]>
+	</update>
+	<update id="updateLoginImsi">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	            imsi_dtm = SYSDATE
+	        WHERE
+	            userid = #{userid}    
+	    ]]>
+	</update>
+	<update id="updateCredential">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	            isCredentialsNonExpired = #{isCredentialsNonExpired}
+	        WHERE
+	            userid = #{userid}
+	    ]]>
+	</update>
+	<update id="updateAccountNonExpired">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	    	isAccountNonExpired = #{isAccountNonExpired}
+        	WHERE
+            	userid = #{userid}    
+    		]]>
+	    		
+	</update>
+	<update id="updateMemberPwd">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	            password = #{password}
+				,loginFailCnt = 0
+	            ,pass_dtm = SYSDATE
+	    	]]>
+	    	<if test="email != '' and email != null">
+	    	<![CDATA[
+	            ,email = #{email}
+	    	]]>
+	    	</if>
+	    	<if test="token != '' and token != null">
+	    	<![CDATA[
+	            ,token = #{token}
+	            ,token_dtm = SYSDATE
+	    	]]>
+	    	</if>
+	    	<if test="isAccountNonLocked != null">
+	    	<![CDATA[
+	            ,token = NULL
+	            ,token_dtm = NULL
+	    		,isCredentialsNonExpired = 1
+	            ,login_dtm = SYSDATE
+	    		,isAccountNonLocked = #{isAccountNonLocked}
+	    	]]>
+	    	</if>
+            <![CDATA[
+        	WHERE
+            	userid = #{userid}    
+    		]]>
+	    		
+	</update>
+	<update id="withdrawMember">
+	    <![CDATA[
+	        DELETE FROM RV700_ADMIN
+	        WHERE
+	            idx = #{idx}
+	    ]]>
+	</update>
+	<update id="deleteMember">
+	    <![CDATA[
+	        UPDATE RV700_ADMIN 
+	        SET
+	            withdraw = 'Y',
+	            withdraw_dtm = SYSDATE,
+				password = null,
+				enumber = null
+	        WHERE
+	            idx = #{idx}
+	    ]]>
+	</update>
+	<update id="updateMemberAuth" parameterType="string">
+	    <![CDATA[
+	        UPDATE RV701_ADMIN_AUTH
+	        SET
+	        	authority_name = #{authority_name},
+	        WHERE
+	            EMAIL = #{userid}    
+	    ]]>
+	</update>
+	<update id="deleteMemberAuth">
+	    <![CDATA[
+	        DELETE FROM RV701_ADMIN_AUTH
+	        WHERE
+	            userid = #{userid}
+	    ]]>
+	</update>
+	
+	
+	<insert id="insertIP" useGeneratedKeys="true" keyProperty="idx">
+	    <selectKey keyProperty="idx" resultType="int" order="BEFORE">
+	        SELECT RV702_ADMIN_IP_IDX.NEXTVAL FROM DUAL
+	    </selectKey>
+	    <![CDATA[
+	        
+	        INSERT INTO RV702_ADMIN_IP
+	        (
+	            idx,
+	            ip, 
+	            description, 
+	            crea_dtm, 
+	            upda_dtm
+	        )
+	        VALUES
+	        (
+	            #{idx}, 
+	            #{ip}, 
+	            #{description},
+	            SYSDATE, 
+	            SYSDATE
+	        )
+	    ]]>
+	</insert>
+	 
+	<select id="selectIPCount" parameterType="string" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(ip) as COUNT
+	        FROM
+	            RV702_ADMIN_IP
+	        WHERE
+	            IP = #{IP}        
+	    ]]>
+	</select>
+	
+	<select id="selectIP" resultType="com.krcon.elif.vo.Account">
+	    <![CDATA[
+	        SELECT
+	            IDX,
+	            IP,
+	            DESCRIPTION
+	        FROM
+	            RV702_ADMIN_IP
+	        ORDER BY IDX ASC   
+	    ]]>
+	</select>
+	
+	<update id="updateIP">
+	    <![CDATA[
+	        UPDATE RV702_ADMIN_IP
+	        SET
+	            IP = #{IP},
+	            DESCRIPTION = #{DESCRIPTION},
+	            UPDA_DTM = SYSDATE
+	        WHERE
+	            IDX = #{IDX}    
+	    ]]>
+	</update>
+	<update id="deleteIP">
+	    <![CDATA[
+	        DELETE FROM RV702_ADMIN_IP
+	        WHERE
+	            IDX = #{IDX}
+	    ]]>
+	</update>
+	
+</mapper>

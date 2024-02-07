@@ -1,0 +1,1041 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="board">
+	<resultMap id="contents" type="hashmap">
+		<result property="CONTENTS" column="CONTENTS" jdbcType="CLOB" javaType="java.lang.String" />
+		<result property="CONTENTS_MOBILE" column="CONTENTS_MOBILE" jdbcType="CLOB" javaType="java.lang.String" />
+	</resultMap>
+	
+	
+	<select id="selectBoardCateCodeCnt" resultType="integer">
+		<![CDATA[
+			SELECT
+				COUNT(CATECODE) as count
+			FROM
+				RV722_BOARD_CATECODE
+			WHERE
+				CATECODE = #{catecode}        
+		]]>
+	</select>
+	<select id="selectBoardCateCode" resultType="com.krcon.elif.vo.BoardCateCode">
+		<![CDATA[
+			SELECT
+				CATECODE,
+				DESCRIPTION
+			FROM
+				RV722_BOARD_CATECODE
+			WHERE
+				1=1 
+			ORDER BY CREA_DTM DESC
+		]]>
+	</select>
+	<insert id="insertCateCode">
+		<![CDATA[
+			INSERT INTO RV722_BOARD_CATECODE
+			(
+				CATECODE,
+				DESCRIPTION
+			)
+			VALUES
+			(
+				#{catecode},
+				#{description}
+			)
+		]]>
+	</insert>
+	<update id="updateCateCode">
+		<![CDATA[
+			UPDATE RV722_BOARD_CATECODE SET
+				CATECODE = #{catecode},
+				DESCRIPTION = #{description},
+				UPDA_DTM = SYSDATE
+			WHERE
+				CATECODE = #{catecode}   
+		]]>
+	</update>
+	<update id="deleteCateCode">
+		<![CDATA[
+			DELETE FROM RV722_BOARD_CATECODE
+			WHERE
+				CATECODE = #{catecode}  
+		]]>
+	</update>
+	
+	<select id="selectBoardShortCategory" resultType="com.krcon.elif.vo.BoardCate">
+		<![CDATA[
+			SELECT
+				IDX,
+				SLUG,
+				DESCRIPTION,
+				MAIN
+			FROM
+				RV721_BOARD_CATE
+			WHERE
+				1=1 
+			ORDER BY CREA_DTM DESC
+		]]>
+	</select>
+	<select id="selectBoardCategory" resultType="com.krcon.elif.vo.BoardCate">
+		<![CDATA[
+			SELECT
+				IDX,
+				CATECODE,
+				SLUG,
+				DESCRIPTION,
+				CODE,
+				TYPES,
+				MAIN,
+				TAG,
+				TAG_DEFAULT,
+				HTML,
+				COUNT,
+				IMAGES,
+				CREA_DTM
+			FROM
+				RV721_BOARD_CATE
+			WHERE
+				1=1 
+			ORDER BY IDX ASC
+		]]>
+	</select>
+	<select id="selectBoardCateCntSlug" resultType="integer">
+		<![CDATA[
+			SELECT
+				COUNT(SLUG) as count
+			FROM
+				RV721_BOARD_CATE
+			WHERE
+				SLUG = #{slug}        
+		]]>
+	</select>
+	<select id="selectBoardCategorySlug" resultType="integer">
+		<![CDATA[
+			SELECT
+				IDX AS PID
+			FROM
+				RV721_BOARD_CATE
+			WHERE
+				SLUG = #{slug}        
+		]]>
+	</select>
+	<select id="selectBoardCategoryIpSlug" parameterType="integer" resultType="string">
+		<![CDATA[
+			SELECT
+				SLUG
+			FROM
+				RV721_BOARD_CATE
+			WHERE
+				IDX = #{pid}        
+		]]>
+	</select>
+	<select id="selectBoardCategoryDetail" resultType="com.krcon.elif.vo.BoardCate">
+		<![CDATA[
+			SELECT
+				SLUG,
+				CATECODE,
+				DESCRIPTION,
+				CODE,
+				TYPES,
+				MAIN,
+				TAG,
+				TAG_DEFAULT,
+				HTML,
+				COUNT,
+				IMAGES
+			FROM
+				RV721_BOARD_CATE
+			WHERE
+				IDX = #{pid}        
+		]]>
+	</select>
+	
+	<insert id="insertCategory" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV721_BOARD_CATE_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO RV721_BOARD_CATE
+			(
+				idx,
+				SLUG,
+				CATECODE,
+				DESCRIPTION,
+				CODE,
+				TYPES,
+				MAIN,
+				HTML,
+				COUNT,
+				IMAGES,
+				CREA_DTM,
+				UPDA_DTM
+			)
+			VALUES
+			(
+				#{idx},
+				#{slug},
+				#{catecode},
+				#{description},
+				#{code},
+				#{types},
+				#{main},
+				#{html},
+				#{count},
+				#{images},
+				SYSDATE,
+				SYSDATE
+			)
+		]]>
+	</insert>
+	<update id="updateCategory">
+		<![CDATA[
+			UPDATE RV721_BOARD_CATE SET
+				SLUG = #{slug},
+				CATECODE = #{catecode},
+				DESCRIPTION = #{description},
+				CODE = #{code},
+					TYPES = #{types},
+					MAIN = #{main},
+					HTML = #{html},
+					COUNT = #{count},
+					IMAGES = #{images},
+				UPDA_DTM = SYSDATE
+			WHERE
+				IDX = #{idx}   
+		]]>
+	</update>
+	<update id="deleteCategory">
+		<![CDATA[
+			DELETE FROM RV721_BOARD_CATE
+			WHERE
+				IDX = #{idx}  
+		]]>
+	</update>
+	
+	<sql id="boardWhere">
+		<choose>
+		<when test="colfiletype == 'catalog'">
+			
+			<if test="lang != '' and lang != null">
+				<foreach item="item" index="index" collection="langs"
+					open="(" separator="or" close=")">
+						LANG LIKE CONCAT('%',#{item},'%')
+				</foreach>
+			</if>
+		</when>
+		<otherwise>
+			<if test="lang != '' and lang != null">
+				and LANG = '${lang}'
+			</if>
+		</otherwise>
+		</choose>
+		
+		<if test="status != '' and status != null">
+			and STATUS = '${status}'
+		</if>
+		<if test="pid != '' and pid != null">
+			and PARENT_IDX = '${pid}'
+		</if>
+		<if test="types != '' and types != null">
+			and GUBUN = '${types}'
+		</if>
+		<if test="typesArrayList != '' and typesArrayList != null">
+			and GUBUN IN
+			<foreach item="item" collection="typesArrayList" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="tags != '' and tags != null">
+			and 
+			<foreach item="item" collection="tags" index="index" open="(" separator="OR" close=")">
+				TAGS like '%${item}%'
+			</foreach>
+		</if>
+		<if test="slug != '' and slug != null">
+			and SLUG = '${slug}'
+		</if>
+		<if test="recom != '' and recom != null">
+			and RECOM = '${recom}'
+		</if>
+		<if test="mainstatus != '' and mainstatus != null">
+			and MAINSTATUS = '${mainstatus}'
+		</if>
+		<if test="gubun != '' and gubun != null">
+			and GUBUN = #{gubun}
+		</if>
+		<if test="sdate != null and sdate != ''">
+			<![CDATA[
+			and TO_CHAR(UPDA_DTM, 'YYYY-MM-DD') >= '${sdate}'
+			]]>
+		</if>
+		<if test="edate != null and edate != ''">
+			<![CDATA[
+			and TO_CHAR(UPDA_DTM, 'YYYY-MM-DD') <= '${edate}'
+			]]>
+		</if>
+		<choose>
+			<when test="mainpopup != '' and mainpopup != null">
+			<![CDATA[
+			AND (MAINSTATUS = 'N' OR (MAINSTATUS='Y' AND (START_DTM<=SYSDATE AND END_DTM >= SYSDATE ) ) )
+			]]>
+			<if test="section != '' and section != null">
+				AND (SECTION = '${section}' OR SECTION='ALL')
+			</if>
+			</when> 
+			<otherwise>
+			<if test="section != '' and section != null">
+				and SECTION = '${section}'
+			</if>
+			</otherwise>
+		</choose>
+		<if test="req_type != '' and req_type != null">
+		<![CDATA[
+			 AND (pjt_cd = #{pjt_cd} OR pjt_cd is null) 
+		]]>
+		</if>
+		<if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (TITLE like '%${keyword}%' OR CONTENTS like '%${keyword}%' OR CONTENTS_MOBILE like '%${keyword}%')
+				</when> 
+				<otherwise>
+				/*and REGEXP_REPLACE(${target}, <![CDATA['<[^>]*>|\&([^;])*;']]>) like '%${keyword}%'*/
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+	<select id="selectBoardCount" resultType="integer">
+		<![CDATA[
+			SELECT
+				COUNT(*) as count
+			FROM
+				RV720_BOARD
+			]]>
+			<where>
+				<include refid="boardWhere" />
+			</where>
+	</select>
+	
+	<select id="selectBoardList" resultType="com.krcon.elif.vo.Board">
+		<![CDATA[
+				SELECT
+					AA.*,
+		]]>
+		<choose>
+		<when test="colfiletype == 'catalog'">
+			( SELECT DOWNLOAD FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'pdfkr')  AS PDFKR,
+			( SELECT DOWNLOAD FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'pdfen')  AS PDFEN,
+			( SELECT DOWNLOAD FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'pdfcn')  AS PDFCN,
+		</when>
+		<otherwise>
+			( SELECT CONCAT(PATH_NAME,STORED_FILE_NAME) FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'thumb')  AS IMG_NAME,
+			( SELECT IDX FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'file')  AS FILE_NAME,
+		</otherwise>
+		</choose>
+		<![CDATA[
+					(SELECT COUNT(IDX) FROM RV724_BOARD_FILE WHERE BOARD_IDX=AA.IDX AND DEL_GB='N') AS FILE_COUNT
+				FROM(  
+					SELECT
+						ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+						IDX,
+		]]>
+		<choose>
+			<when test="frontcol != '' and frontcol != null">
+			<![CDATA[
+						${frontcol}
+			]]>
+			</when> 
+			<otherwise>
+			<![CDATA[
+				PARENT_IDX,
+				SLUG,
+				LANG,
+				SECTION,
+				GUBUN,
+				TITLE,
+				TITLE_SUB,
+				CONTENTS,
+				CONTENTS_MOBILE,
+				HIT_CNT,
+				TAGS,
+				STATUS,
+				MAINSTATUS,
+				MAINSORT,
+				START_DTM,
+				END_DTM,
+				VIDEO,
+				SORT,
+				RECOM,
+				CREA_ID,
+				CREA_NAME,
+				CREA_DTM,
+				UPDA_DTM,
+				PJT_CD
+			]]>
+			</otherwise>
+		</choose>
+		<![CDATA[
+					FROM
+						RV720_BOARD
+			]]>
+		<where>
+			<include refid="boardWhere" />
+		</where>
+		<![CDATA[
+				) AA
+		]]>
+		<where>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+		</where>
+		<choose>
+			<when test="orderby != '' and orderby != null">
+			<![CDATA[
+			ORDER BY ${orderby}
+			]]>
+			</when> 
+			<otherwise>
+			<![CDATA[
+			ORDER BY IDX DESC
+			]]>
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	<select id="selectBoardSlug" resultType="integer">
+		<![CDATA[
+			SELECT
+				COUNT(SLUG) as count
+			FROM
+				RV720_BOARD
+			WHERE
+				SLUG = #{slug}        
+		]]>
+	</select>
+	<select id="selectBoardSlugIDX" resultType="com.krcon.elif.vo.Board">
+		<![CDATA[
+			SELECT
+				IDX
+			FROM
+				RV720_BOARD
+			WHERE
+				SLUG = #{slug}        
+		]]>
+	</select>
+	<insert id="insertBoard" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV720_BOARD_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			
+			INSERT INTO RV720_BOARD
+			(
+				idx,
+				PARENT_IDX,
+				SLUG, 
+				LANG,
+				SECTION,
+				GUBUN, 
+				TITLE, 
+				TITLE_SUB,
+				CONTENTS, 
+				CONTENTS_MOBILE, 
+				STATUS, 
+				SORT, 
+				TAGS,
+				MAINSTATUS, 
+				MAINSORT, 
+				pjt_cd,
+		]]>
+			<if test="start_dtm != null">
+				start_dtm,
+			</if>
+		<![CDATA[
+				
+		]]>
+			<if test="end_dtm != null">
+				end_dtm,
+			</if>
+		<![CDATA[
+				VIDEO,
+				RECOM,
+				HIT_CNT,
+				CREA_ID,
+				CREA_NAME,
+				CREA_DTM,
+				UPDA_DTM
+			)
+			VALUES
+			(
+				#{idx},
+				#{pid}, 
+				#{slug}, 
+				#{lang}, 
+				#{section}, 
+				#{gubun}, 
+				#{title}, 
+				#{title_sub}, 
+				#{contents,jdbcType=CLOB}, 
+				#{contents,jdbcType=CLOB}, 
+				#{status}, 
+				#{sort}, 
+				#{tags}, 
+				#{mainstatus}, 
+				#{mainsort}, 
+				#{pjt_cd}, 
+			]]>
+			<if test="start_dtm != null">
+				#{start_dtm},
+			</if>
+			<![CDATA[
+					
+			]]>
+			<if test="end_dtm != null">
+				#{end_dtm},
+			</if>
+			<![CDATA[
+				#{video}, 
+				#{recom}, 
+				0,  
+				#{crea_id}, 
+				#{crea_name},
+				SYSDATE,
+			]]>
+		<choose>
+			<when test="upda_dtm != null">
+			<![CDATA[
+				#{upda_dtm}
+			]]>
+			</when> 
+			<otherwise>
+			<![CDATA[
+				SYSDATE
+			]]>
+			</otherwise>
+		</choose>
+		<![CDATA[
+			)
+		]]>
+	</insert>
+	<!--empty_clob()-->
+	<update id="updateContentsBoard">
+		<![CDATA[
+			UPDATE RV720_BOARD 
+			SET
+				CONTENTS = #{contents,jdbcType=CLOB,javaType=String},
+				CONTENTS_MOBILE = #{contents_mobile,jdbcType=CLOB,javaType=String}
+			WHERE
+				IDX = #{idx}    
+		]]>
+	</update>
+	<update id="updateHitCnt">
+		<![CDATA[
+			UPDATE RV720_BOARD 
+			SET
+				HIT_CNT = NVL(HIT_CNT, 0) + 1
+			WHERE
+				IDX = #{idx}    
+		]]>
+	</update>
+	 
+	<select id="selectBoardDetail" resultType="com.krcon.elif.vo.Board">
+		<![CDATA[
+			SELECT
+				IDX,
+				PARENT_IDX,
+				( SELECT CONCAT(PATH_NAME,STORED_FILE_NAME) FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'thumb')  AS IMG_NAME,
+				( SELECT IDX FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'file')  AS FILE_NAME,
+				SLUG, 
+				LANG,
+				SECTION,
+				GUBUN, 
+				TITLE, 
+				TITLE_SUB,
+				CONTENTS, 
+				CONTENTS_MOBILE, 
+				STATUS, 
+				MAINSTATUS,
+				MAINSORT,
+				TAGS, 
+				START_DTM,
+				END_DTM,
+				SORT,
+				VIDEO,
+				RECOM,
+				HIT_CNT,
+				CREA_ID,
+				CREA_NAME,
+				CREA_DTM,
+				UPDA_ID,
+				UPDA_NAME,
+				UPDA_DTM,
+				PJT_CD
+			FROM
+				RV720_BOARD AA
+			WHERE
+				IDX = #{idx}        
+		]]>
+		<if test="status != '' and status != null">
+			and STATUS = '${status}'
+		</if>
+	</select>
+	
+	<select id="selectBoardGroupGubun" resultType="String">
+		<![CDATA[
+			SELECT
+				gubun as gubun_group
+			FROM
+				RV720_BOARD
+			WHERE
+				PARENT_IDX = #{parent_idx}
+		]]>
+		<if test="status != '' and status != null">
+			and STATUS = '${status}'
+		</if>
+		<![CDATA[
+		GROUP BY gubun 
+		]]>
+
+	</select>
+	<update id="updateBoard">
+		<![CDATA[
+			UPDATE RV720_BOARD 
+			SET
+				SLUG = #{slug},
+				GUBUN = #{gubun},
+				LANG = #{lang},
+				TITLE = #{title},
+				TITLE_SUB = #{title_sub},
+				CONTENTS = #{contents},
+				CONTENTS_MOBILE = #{contents_mobile},
+				STATUS = #{status},
+				TAGS = #{tags},
+				MAINSTATUS = #{mainstatus},
+				MAINSORT = #{mainsort},
+				SORT = #{sort},
+				PJT_CD = #{pjt_cd},
+		]]>
+				<if test="start_dtm != null">
+					START_DTM = #{start_dtm},
+				</if>
+				<if test="end_dtm != null">
+					END_DTM = #{end_dtm},
+				</if>
+		<![CDATA[
+				VIDEO = #{video},
+				SECTION = #{section},
+				RECOM = #{recom},
+				UPDA_ID = #{upda_id},
+				UPDA_NAME = #{upda_name},
+				UPDA_DTM = SYSDATE
+				
+			WHERE
+				IDX = #{idx}    
+		]]>
+	</update>
+	<update id="deleteBoard">
+		<![CDATA[
+			DELETE FROM RV720_BOARD
+			WHERE
+				IDX = #{idx}
+		]]>
+	</update>
+	
+	<update id="updateStatus">
+		<if test='status != "" and status != null'>
+		<![CDATA[
+		UPDATE RV720_BOARD 
+		SET
+			status = #{status}
+		WHERE
+			IDX = #{idx}  
+		]]>
+		</if>
+	</update>
+	<!-- 게시판 파일 관련 -->
+	<insert id="insertFile" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV724_BOARD_FILE_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO RV724_BOARD_FILE
+			(
+				idx,
+				BOARD_IDX,
+				ORIGINAL_FILE_NAME,
+				STORED_FILE_NAME,
+				FILE_GUBUN,
+				FILE_SORT,
+				FILE_SIZE,
+				DOWNLOAD,
+				PATH_NAME,
+		]]>
+					<if test="comments != '' and comments != null">
+						comments,
+					</if>
+		<![CDATA[
+				CREA_DTM
+			)
+			VALUES
+			(
+				#{idx},
+				#{board_idx},
+				#{original_file_name},
+				#{stored_file_name},
+				#{file_gubun},
+				#{file_sort},
+				#{file_size},
+				0,
+				#{path_name},
+		]]>
+					<if test="comments != '' and comments != null">
+						COMMENTS = #{comments},
+					</if>
+		<![CDATA[
+				SYSDATE
+			)
+		]]>
+	</insert>
+	<select id="selectFileList" resultType="com.krcon.elif.vo.BoardFile">
+	<![CDATA[
+		SELECT
+			IDX,
+			ORIGINAL_FILE_NAME,
+			STORED_FILE_NAME,
+			FILE_GUBUN,
+			FILE_SORT,
+			PATH_NAME,
+			DOWNLOAD,
+			ROUND(FILE_SIZE/1024,1) AS FILE_SIZE
+		FROM
+			RV724_BOARD_FILE
+
+			]]>
+		<where>
+			BOARD_IDX = #{board_idx}
+			AND DEL_GB = 'N'
+			<if test="file_gubun != '' and file_gubun != null">
+			AND FILE_GUBUN = #{file_gubun}
+			</if>
+		</where>
+		<![CDATA[
+		ORDER by FILE_SORT ASC
+		]]>
+	</select>
+
+	<select id="selectFileDetail" resultType="com.krcon.elif.vo.BoardFile">
+	<![CDATA[
+		SELECT
+			IDX,
+			ORIGINAL_FILE_NAME,
+			STORED_FILE_NAME,
+			FILE_GUBUN,
+			FILE_SORT,
+			PATH_NAME,
+			DOWNLOAD,
+			ROUND(FILE_SIZE/1024,1) AS FILE_SIZE
+		FROM
+			RV724_BOARD_FILE
+
+			]]>
+		<where>
+		   IDX = #{idx}
+		</where>
+	</select>
+	<update id="updateFile">
+		<![CDATA[
+			UPDATE RV724_BOARD_FILE SET
+				ORIGINAL_FILE_NAME = #{original_file_name},
+				STORED_FILE_NAME = #{stored_file_name},
+				FILE_GUBUN = #{file_gubun},
+				FILE_SORT = #{file_sort},
+				FILE_SIZE = #{file_size},
+				PATH_NAME = #{path_name}
+			WHERE
+				IDX = #{idx}   
+		]]>
+	</update>
+	<update id="deleteFile">
+		<![CDATA[
+			DELETE FROM RV724_BOARD_FILE
+			WHERE
+				IDX = #{idx}  
+		]]>
+	</update>
+	 
+	<update id="deleteFileList">
+		<![CDATA[
+			DELETE FROM RV724_BOARD_FILE
+			WHERE
+				BOARD_IDX = #{board_idx}   
+		]]>
+	</update>
+
+
+	<!-- 프론트 추가 -->
+
+	
+	<select id="selectBoardDetailPrev" resultType="com.krcon.elif.vo.Board">
+		<![CDATA[
+	SELECT
+		AA.*
+	FROM
+		(
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY start_dtm DESC) AS rnum,
+				IDX,
+				PARENT_IDX,
+				TITLE, 
+				TITLE_SUB,
+				START_DTM,
+				HIT_CNT,
+				CREA_NAME
+			FROM
+				RV720_BOARD
+			WHERE
+				PARENT_IDX = #{pid}    
+
+		]]>
+		<if test="prevNextDate != null">
+		 <![CDATA[
+			AND start_dtm < TO_DATE(#{prevNextDate}, 'YYYY-MM-DD HH24:MI:SS')
+		]]>
+		</if>
+		<![CDATA[
+				AND STATUS = 'Y'
+		]]>
+		<if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (TITLE like '%${keyword}%' OR CONTENTS like '%${keyword}%' OR CONTENTS_MOBILE like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+		</if>
+		<if test="gubun != null">
+		 <![CDATA[
+			AND gubun = #{gubun}
+		]]>
+		</if>
+		<![CDATA[
+			ORDER BY start_dtm DESC
+			) AA
+		WHERE
+			rnum = 1
+		]]>
+		
+	</select>
+	
+	<select id="selectBoardDetailNext" resultType="com.krcon.elif.vo.Board">
+		<![CDATA[
+		SELECT
+			AA.*
+		FROM
+			(
+				SELECT
+					ROW_NUMBER() OVER (ORDER BY start_dtm ASC) AS rnum,
+				IDX,
+				PARENT_IDX,
+				TITLE, 
+				TITLE_SUB,
+				START_DTM,
+				HIT_CNT,
+				CREA_NAME
+			FROM
+				RV720_BOARD
+			WHERE
+				PARENT_IDX = #{pid}   
+
+		]]>
+		<if test="prevNextDate != null">
+		 <![CDATA[
+			AND start_dtm > TO_DATE(#{prevNextDate}, 'YYYY-MM-DD HH24:MI:SS')
+		]]>
+		</if>
+		<![CDATA[
+				AND STATUS = 'Y'
+		]]>
+		<if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (TITLE like '%${keyword}%' OR CONTENTS like '%${keyword}%' OR CONTENTS_MOBILE like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+		</if>
+		<if test="gubun != null">
+		 <![CDATA[
+			AND gubun = #{gubun}
+		]]>
+		</if>
+		<![CDATA[
+			ORDER BY start_dtm ASC
+			) AA
+		WHERE
+			rnum = 1
+		]]>
+		
+	</select>
+	<!-- 프론트 추가 끝 -->
+
+	<sql id="searchDownloadColumn">
+	tbd.board_idx,
+	tb.lang,
+	tb.title,
+	tbd.company,
+	tbd.email,
+	tbd.crea_dtm
+	</sql>
+
+	<sql id="searchDownloadWhere">
+		<if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (title like '%${keyword}%' OR company like '%${keyword}%' OR email like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+		</if>
+
+		<choose>	
+			<when test="start_dtm != null and end_dtm != null and start_dtm != '' and end_dtm != ''">
+			AND tbd.crea_dtm BETWEEN date_format(#{start_dtm}, '%Y-%m-%d %H:%i') AND date_format(concat(#{end_dtm},' 23:59:59:00'), '%Y-%m-%d %H:%i:%s')
+			</when>
+		 </choose>
+		<if test="lang != '' and lang != null">
+			and tb.lang = #{lang}
+		</if>
+	</sql>
+	<select id="selectDownloadCount" resultType="int"><![CDATA[
+		SELECT
+			count(*) as count
+		FROM(  
+			SELECT
+				tbd.idx
+					FROM
+						RV723_BOARD_DOWNLOAD tbd
+					JOIN RV720_BOARD tb ON tb.idx = tbd.board_idx
+			]]>
+		<where>
+			<include refid="searchDownloadWhere" />
+		</where>
+		<![CDATA[
+				) AA
+		]]>
+	</select>
+
+	<select id="selectDownloadList" resultType="com.krcon.elif.vo.BoardDownload">
+		<![CDATA[
+				SELECT
+					AA.*
+				FROM(  
+					SELECT
+						ROW_NUMBER() OVER (ORDER BY tbd.idx DESC) RNUM,
+						tbd.idx,
+				]]>
+		<choose>
+			<when test="frontcol != '' and frontcol != null">
+				<![CDATA[
+					${frontcol}
+					]]>
+			</when>
+			<otherwise>
+				<include refid="searchDownloadColumn" />
+			</otherwise>
+		</choose>
+		<![CDATA[
+					FROM
+						RV723_BOARD_DOWNLOAD tbd
+					JOIN RV720_BOARD tb ON tb.idx = tbd.board_idx
+			]]>
+		<where>
+			<include refid="searchDownloadWhere" />
+		</where>
+		<![CDATA[
+				) AA
+		]]>
+		<where>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+		</where>
+		<choose>
+			<when test="orderby != '' and orderby != null">
+				<![CDATA[
+			ORDER BY ${orderby}
+			]]>
+			</when>
+			<otherwise>
+				<![CDATA[
+			ORDER BY IDX DESC
+			]]>
+			</otherwise>
+		</choose>
+
+	</select>
+	<select id="selectDownloadDeleteCount" resultType="int">
+		<![CDATA[
+		SELECT 
+			COUNT(*) as CNT
+		FROM
+			RV723_BOARD_DOWNLOAD tbd
+		LEFT JOIN RV720_BOARD tb ON tb.idx = tbd.board_idx
+		 WHERE tbd.crea_dtm < (SYSDATE + (INTERVAL '3' YEAR))
+		 ]]> 
+	</select>
+	<select id="selectDownloadDeleteList" resultType="com.krcon.elif.vo.Customer">
+		<![CDATA[
+		SELECT 
+			tbd.idx,
+		]]> 
+			<include refid="searchDownloadColumn" />
+		<![CDATA[
+		FROM
+			RV723_BOARD_DOWNLOAD tbd
+		LEFT JOIN RV720_BOARD tb ON tb.idx = tbd.board_idx
+		 WHERE tbd.crea_dtm < (SYSDATE + (INTERVAL '3' YEAR))
+		 ORDER BY tbd.crea_dtm DESC
+		 ]]> 
+	</select>
+	<update id="deleteDownloadAll" >
+		 <![CDATA[
+			DELETE FROM RV723_BOARD_DOWNLOAD
+			 WHERE crea_dtm < (SYSDATE + (INTERVAL '3' YEAR))
+		]]> 
+	</update>
+	<insert id="insertDownload" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV723_BOARD_DOWNLOAD_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO RV723_BOARD_DOWNLOAD
+			(
+				idx,
+				board_idx,
+				company,
+				email,
+				crea_dtm
+			)
+			VALUES
+			(
+				#{idx},
+				#{board_idx},
+				#{company},
+				#{email},
+				SYSDATE
+			)
+		]]>
+	</insert>
+</mapper>

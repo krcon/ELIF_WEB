@@ -1,0 +1,950 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="reservation">
+	
+    <!--***************************************************************
+	* 설명		: 사전점검예약 동 조회
+	* 작성일자	: 2016-05-17
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveBfChkReserveDong" resultType="map">
+		<![CDATA[
+		select distinct a.bl_cd, b.bl_nm
+		  from HS160_BL_RMNO a, HS130_PJT_BL b
+		 where a.co_cd = '10'
+		   and a.pjt_cd = #{reqPjtCd}
+		   and a.sllt_stats_cd = 'HS02001'
+		   and a.co_cd = b.co_cd
+		   and a.pjt_cd = b.pjt_cd
+		   and a.bl_cd = b.bl_cd
+		   and ( #{reqPjtCd} != '145096' or substr(a.bl_cd,0,2) in ('10') )
+	     order by a.bl_cd
+		]]>
+    </select>
+
+
+    <!--***************************************************************
+	* 설명		: 사전점검 호 조회
+	* 작성일자	: 2016-05-17
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveeBfChkReserveHo" resultType="map">
+		<![CDATA[
+		select distinct rmno_cd
+		  from HS160_BL_RMNO a
+		 where a.co_cd = '10'
+		   and a.pjt_cd = #{reqPjtCd}
+		   and a.sllt_stats_cd = 'HS02001'
+		   and a.bl_cd = #{reqBlCd}
+		 order by a.rmno_cd
+		]]>
+    </select>
+
+	<!--***************************************************************
+	* 설명		: 사전점검관리 안내문구, 타이틀 조회, 예약가능일시 체크
+	* 작성일자	: 2017.10.10
+	* 작성자		: 김영로
+	****************************************************************-->
+	<select id="retrieveBkchkRsltCode" resultType="map">
+	<![CDATA[
+		select  code_id
+				, code_name
+				, code_desc as info_msg
+				, chrc_prpy1 as title_img_bak
+				, (case when sysdate between to_date(chrc_prpy2, 'YYYYMMDD HH24:MI') and to_date(chrc_prpy3, 'YYYYMMDD HH24:MI') then 'Y' else 'N' end) as enable_yn
+                , '예약가능기간이 아닙니다. [' || substr(chrc_prpy2,1,4) || '.' || substr(chrc_prpy2,5,2) || '.' || substr(chrc_prpy2,7,2) || ' ' || substr(chrc_prpy2,10,5) || ' ~ ' || substr(chrc_prpy3,1,4) || '.' || substr(chrc_prpy3,5,2) || '.' || substr(chrc_prpy3,7,2) || ' ' || substr(chrc_prpy3,10,5) || ']' as inform_msg
+		from	pbf_com_code
+		where	co_cd = '10'
+		and		code_group = 'HS080'
+		and		code_name = #{reqPjtCd}
+		and		use_flag = 'Y'
+   	]]>
+	</select>
+
+
+
+<!--***************************************************************
+	* 설명		: 사전점검 정보조회
+	* 작성일자	: 2016-05-20
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheBfchkReserveInfo" resultType="map">
+		<![CDATA[
+		select decode(c.bf_chk_str_dt, '','',substr(c.bf_chk_str_dt,1,4) || '-' || substr(c.bf_chk_str_dt,5,2) || '-' || substr(c.bf_chk_str_dt,7,2)) as bf_chk_str_dt
+	 				, decode(c.bf_chk_end_dt, '','',substr(c.bf_chk_end_dt,1,4) || '-' || substr(c.bf_chk_end_dt,5,2) || '-' || substr(c.bf_chk_end_dt,7,2)) as bf_chk_end_dt
+	 			    , to_char(g.bf_chk_ln_no) as bf_chk_ln_no
+	 			    , a.BL_CD
+					, bl.BL_NM
+                	, a.RMNO_CD
+					, d.rmno_nm
+                	, b.cust_pnm
+                	, nvl(a.mibl_hp_no, b.mp_1_no) as mibl_hp_no
+                	, b.RRNO_FDGT
+	 			    , nvl(g.bf_chk_res_dt, c.bf_chk_str_dt) as bf_chk_res_dt
+	 			    , to_char(g.bf_chk_tm_seq) as bf_chk_tm_seq
+	 			    , g.bf_chk_res_cd
+					, substr(g.bf_chk_res_dt, 1,4) || '년 ' || substr(g.bf_chk_res_dt, 5,2) || '월 ' || substr(g.bf_chk_res_dt, 7,2) || '일' AS BF_CHK_RES_DT_MSG
+	                , substr(f.str_hm, 1, 2) || '시 ' ||  substr(f.str_hm, 3, 2) || '분 ~ ' || substr(f.end_hm, 1, 2) || '시 ' ||  substr(f.end_hm, 3, 2) || '분' as hhmm_msg
+	                , substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~' || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2) as hhmm
+	                , case when g.bf_chk_res_cd = 'HS07410' then '사전점검기간 : ' ||
+	                                                      substr(c.bf_chk_str_dt,1,4) || '.' || substr(c.bf_chk_str_dt,5,2) || '.' || substr(c.bf_chk_str_dt,7,2)
+	                                                      || ' ~ ' ||
+	                                                      substr(c.bf_chk_end_dt,1,4) || '.' || substr(c.bf_chk_end_dt,5,2) || '.' || substr(c.bf_chk_end_dt,7,2)
+	                                                      || ' 예약 가능합니다.'
+	                         when g.bf_chk_res_cd = 'HS07420' then  substr(g.bf_chk_res_dt, 1,4) || '.' || substr(g.bf_chk_res_dt, 5,2) || '.' || substr(g.bf_chk_res_dt, 7,2) || ' '
+	                                                      || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+	                                                      || ' 예약 신청하셨습니다.'
+	                         when g.bf_chk_res_cd = 'HS07430' then  substr(g.bf_chk_res_dt, 1,4) || '.' || substr(g.bf_chk_res_dt, 5,2) || '.' || substr(g.bf_chk_res_dt, 7,2) || ' '
+	                                                      || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+	                                                      || ' 예약 확정되셨습니다.'
+	                   else '' end as view_msg
+	                   , BF_CHK_RES_DT
+                       , BF_CHK_APL_DTM
+                       , BF_CHK_TM_SEQ
+                       , CUST_NM
+                       , CUST_HP_NO
+	 	 from HS220_SLLT_CONT a
+	       	  , HS800_SLLT_CUST b
+	 		      , hs100_sllt_pjt c
+	 		      , HS160_bl_rmno d
+	 		      , HS701_BF_CHK_TM f
+	             , HS702_BF_CHK g
+				 , HS130_PJT_BL bl
+	 	where a.co_cd = '10'
+	 	  and a.pjt_cd = #{reqPjtCd}
+	 	  and a.bl_cd = #{reqBlCd}
+	 	  and a.rmno_cd = #{reqRmnoCd}
+	 	  and a.co_cd = b.co_cd
+	 	  and a.sllt_cust_cd = b.sllt_cust_cd
+	 	  and b.RRNO_FDGT = #{reqPersFirstNo}
+	 	  and b.cust_pnm = trim(#{reqCustNm})
+	 	  and a.co_cd = c.co_cd
+	 	  and a.pjt_cd = c.pjt_cd
+	 	  and a.co_cd = d.co_cd
+	 	  and a.pjt_cd = d.pjt_cd
+	 	  and a.bl_cd = d.bl_cd
+	 	  and a.rmno_cd = d.rmno_cd
+	 	  and g.co_cd = f.co_cd(+)
+	 	  and g.pjt_cd = f.pjt_cd(+)
+	 	  and g.BF_CHK_TM_SEQ = f.tm_seq(+)
+	     and a.co_cd = g.co_Cd
+	     and a.pjt_Cd = g.pjt_cd
+	     and a.bl_cd = g.bl_cd
+	     and a.rmno_cd = g.rmno_cd
+		 and a.co_cd = bl.co_cd
+		 and a.pjt_cd = bl.pjt_cd
+		 and a.bl_cd = bl.bl_cd
+		]]>
+    </select>
+
+
+
+    <select id="retrieveRicheBfchkReserveInfoList" resultType="map">
+		<![CDATA[
+		select decode(c.bf_chk_str_dt, '','',substr(c.bf_chk_str_dt,1,4) || '-' || substr(c.bf_chk_str_dt,5,2) || '-' || substr(c.bf_chk_str_dt,7,2)) as bf_chk_str_dt
+	 				, decode(c.bf_chk_end_dt, '','',substr(c.bf_chk_end_dt,1,4) || '-' || substr(c.bf_chk_end_dt,5,2) || '-' || substr(c.bf_chk_end_dt,7,2)) as bf_chk_end_dt
+	 			    , to_char(g.bf_chk_ln_no) as bf_chk_ln_no
+	 			    , a.BL_CD
+					, bl.BL_NM
+                	, a.RMNO_CD
+					, d.rmno_nm
+                	, b.cust_pnm
+                	, nvl(a.mibl_hp_no, b.mp_1_no) as mibl_hp_no
+                	, b.RRNO_FDGT
+	 			    , nvl(g.bf_chk_res_dt, c.bf_chk_str_dt) as bf_chk_res_dt
+	 			    , to_char(g.bf_chk_tm_seq) as bf_chk_tm_seq
+	 			    , g.bf_chk_res_cd
+	                , substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~' || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2) as hhmm
+	                , case when g.bf_chk_res_cd = 'HS07410' then '사전점검기간 : ' ||
+	                                                      substr(c.bf_chk_str_dt,1,4) || '.' || substr(c.bf_chk_str_dt,5,2) || '.' || substr(c.bf_chk_str_dt,7,2)
+	                                                      || ' ~ ' ||
+	                                                      substr(c.bf_chk_end_dt,1,4) || '.' || substr(c.bf_chk_end_dt,5,2) || '.' || substr(c.bf_chk_end_dt,7,2)
+	                                                      || ' 예약 가능합니다.'
+	                         when g.bf_chk_res_cd = 'HS07420' then  substr(g.bf_chk_res_dt, 1,4) || '.' || substr(g.bf_chk_res_dt, 5,2) || '.' || substr(g.bf_chk_res_dt, 7,2) || ' '
+	                                                      || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+	                                                      || ' 예약 신청하셨습니다.'
+	                         when g.bf_chk_res_cd = 'HS07430' then  substr(g.bf_chk_res_dt, 1,4) || '.' || substr(g.bf_chk_res_dt, 5,2) || '.' || substr(g.bf_chk_res_dt, 7,2) || ' '
+	                                                      || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+	                                                      || ' 예약 확정되셨습니다.'
+	                   else '' end as view_msg
+	                   , BF_CHK_RES_DT
+                       , BF_CHK_APL_DTM
+                       , BF_CHK_TM_SEQ
+                       , CUST_NM
+                       , CUST_HP_NO
+                       , c.PJT_MRKG_NM AS PJT_NM
+                       , substr(g.bf_chk_res_dt, 1,4) || '년 ' || substr(g.bf_chk_res_dt, 5,2) || '월 ' || substr(g.bf_chk_res_dt, 7,2) || '일' AS BF_CHK_RES_DT_MSG
+	 	 from HS220_SLLT_CONT a
+	       	  , HS800_SLLT_CUST b
+	 		      , hs100_sllt_pjt c
+	 		      , HS160_bl_rmno d
+	 		      , HS701_BF_CHK_TM f
+	             , HS702_BF_CHK g
+				 , HS130_PJT_BL bl
+	 	where a.co_cd = '10'
+	 	  and a.co_cd = b.co_cd
+	 	  and a.sllt_cust_cd = b.sllt_cust_cd
+	 	  and b.RRNO_FDGT = #{reqPersFirstNo}
+	 	  and b.cust_pnm = trim(#{reqCustNm})
+	 	  and a.co_cd = c.co_cd
+	 	  and a.pjt_cd = c.pjt_cd
+	 	  and a.co_cd = d.co_cd
+	 	  and a.pjt_cd = d.pjt_cd
+	 	  and a.bl_cd = d.bl_cd
+	 	  and a.rmno_cd = d.rmno_cd
+	 	  and g.co_cd = f.co_cd(+)
+	 	  and g.pjt_cd = f.pjt_cd(+)
+	 	  and g.BF_CHK_TM_SEQ = f.tm_seq(+)
+	     and a.co_cd = g.co_Cd
+	     and a.pjt_Cd = g.pjt_cd
+	     and a.bl_cd = g.bl_cd
+	     and a.rmno_cd = g.rmno_cd
+	     AND c.BF_CHK_STR_DT IS NOT null
+	     AND c.BF_CHK_END_DT IS NOT null
+	     AND g.BF_CHK_TM_SEQ IS NOT null
+		 and a.co_cd = bl.co_cd
+		 and a.pjt_cd = bl.pjt_cd
+		 and a.bl_cd = bl.bl_cd
+		]]>
+    </select>
+
+    <!--***************************************************************
+	* 설명		: 사전점검 예약가능시간 목록 조회
+	* 작성일자	: 2016-05-20
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheBfchkReserveDay" resultType="map">
+		<![CDATA[
+		select a.tm_seq
+	        , substr(a.str_hm,1,2) || ':' || substr(a.str_hm,3,2) as str_hm
+	        , substr(a.end_hm,1,2) || ':' || substr(a.end_hm,3,2) as end_hm
+	        , b.res_cnt
+	        , case when (a.res_enable_cnt - b.res_cnt) < 0 then 0  else a.res_enable_cnt - b.res_cnt end as res_enable_cnt
+	        , c.cust_nm
+	        , c.cust_hp_no
+				, d.ymdd
+				, to_char(to_date(d.ymdd,'yyyymmdd'),'yyyy-mm-dd') || ' ' || d.dow as ymddyo
+				, (case when (d.ymdd = e.BF_CHK_RES_DT) and (a.tm_seq = e.BF_CHK_TM_SEQ) then 'Y' else 'N' end ) as pre_res_tm
+	   from HS701_BF_CHK_TM a
+	        , (
+	         select b.tm_seq
+	                , nvl(a.res_cnt,0)  as res_cnt
+	           from (
+	                 select bf_chk_tm_seq as tm_seq
+	                        , count(1) as res_cnt
+	                   from HS702_BF_CHK a
+	                  where a.co_cd = '10'
+	                    and a.pjt_cd =  #{reqPjtCd}
+	                    and bf_chk_res_dt = #{bfChkResDt}
+	                  group by bf_chk_tm_seq
+	                ) a
+	                , HS701_BF_CHK_TM b
+	         where b.co_cd = '10'
+	           and b.pjt_cd =  #{reqPjtCd}
+	           and b.tm_seq = a.tm_seq(+)
+	        ) b
+	        , (
+	        select cust_pnm as cust_nm
+	               , nvl(mp_1_no, mp_2_no) as cust_hp_no from HS220_SLLT_CONT a
+	               , HS800_SLLT_CUST b
+	         where a.co_cd = '10'
+	           and a.pjt_cd = #{reqPjtCd}
+	           and a.bl_cd = #{blCd}
+	           and a.rmno_cd = #{rmnoCd}
+	           and a.sllt_cust_cd = b.sllt_cust_cd
+	           and a.co_cd = b.co_cd
+	         ) c
+	         , CM820_CNST_CALDR d
+				, (
+					select BF_CHK_RES_DT, BF_CHK_TM_SEQ from HS702_BF_CHK
+						where co_cd = '10'
+						  and pjt_cd = #{reqPjtCd}
+						  and bl_Cd = #{blCd}
+						  and rmno_cd = #{rmnoCd}
+				  ) e
+	  where a.co_cd = '10'
+	    and a.pjt_cd = #{reqPjtCd}
+	    and a.res_yn = 'Y'
+	    and a.tm_seq = b.tm_seq(+)
+	    and a.co_cd = d.co_cd
+	    and d.YMDD = #{bfChkResDt}
+	 order by str_hm
+		]]>
+		<!-- <append where="false" condition="#{reqPjtCd}.EQ.145096" id="#1" resultType="map">
+		<![CDATA[
+        and ((substr(#{blCd},1,2) = '08' and a.tm_seq <= 13)
+             or
+             (substr(#{blCd},1,2) = '12' and a.tm_seq > 13 and a.tm_seq < 27)
+             or
+             (substr(#{blCd},1,2) = '10' and a.tm_seq > 26)
+             )
+		]]>
+	    </append> -->
+    </select>
+
+    <!--***************************************************************
+	* 설명		: 사전점검 가능여부체크
+	* 작성일자	: 2016-05-20
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheBfchkReserveCnt" resultType="map">
+		<![CDATA[
+		select a.res_enable_cnt
+					         -
+					         (
+					              select count(1)
+					               from HS702_BF_CHK h
+					              where h.co_cd = a.co_cd
+					                and h.pjt_cd = a.pjt_cd
+					                and h.bf_chk_res_dt = #{bfChkResDt}
+					                and h.bf_chk_tm_Seq = a.tm_seq
+					         ) as cnt
+					    from HS701_BF_CHK_TM a
+					   where a.co_cd = '10'
+					     and a.pjt_cd = #{reqPjtCd}
+					     and a.tm_seq = #{reqBfChkTmSeq}
+		]]>
+    </select>
+
+<!--***************************************************************
+	* 설명		: 사전점검 예약
+	* 작성일자	: 2016-05-20
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <update id="saveRicheBfchkReserve">
+		<![CDATA[
+		 update HS702_BF_CHK a
+		    set a.cust_hp_no = #{miblHpNo}
+				, a.cust_nm = #{custPnm}
+		       , a.bf_chk_apl_dtm = sysdate
+		       , a.bf_chk_res_dt =#{bfChkResDt}
+		       , a.bf_chk_tm_seq = #{reqBfChkTmSeq}
+		       , a.bf_chk_res_cd = 'HS07420'
+		 where a.co_cd = '10'
+		   and a.pjt_cd = #{reqPjtCd}
+		   and a.bl_cd = #{blCd}
+		   and a.rmno_cd = #{rmnoCd}
+		   and a.bf_chk_res_dt is null
+		   and a.bf_chk_tm_Seq is null
+		   and (select res_enable_cnt from hs701_bf_chk_tm where co_cd = '10' and pjt_cd = a.pjt_cd and tm_seq = #{reqBfChkTmSeq}) > (
+		                    select count(1)
+		                      from HS702_BF_CHK h
+		                     where h.co_cd = a.co_cd
+		                       and h.pjt_cd = a.pjt_cd
+		                       and h.bf_chk_res_dt = #{bfChkResDt}
+		                       and h.bf_chk_tm_Seq =#{reqBfChkTmSeq})
+		]]>
+    </update>
+
+    <!--***************************************************************
+	* 설명		: 사전점검 예약 취소
+	* 작성일자	: 2016-05-20
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <update id="cancelRicheBfchkReserve">
+		<![CDATA[
+		update HS702_BF_CHK
+		   set cust_hp_no = ''
+			    , cust_nm = ''
+			    , bf_chk_apl_dtm = null
+			    , bf_chk_res_dt = ''
+			    , bf_chk_tm_seq = null
+			    , bf_chk_res_cd = 'HS07410'
+			where co_cd = '10'
+			    and pjt_cd = #{reqPjtCd}
+			    and bl_cd = #{blCd}
+			    and rmno_cd = #{rmnoCd}
+		]]>
+    </update>
+    <!--***************************************************************
+	* 설명		: 사전점검 문자발송
+	* 작성일자	: 2016-05-20
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="saveRicheBfchkReserveSuccessSmsD" resultType="map">
+		<![CDATA[
+			SELECT
+          	   #{miblHpNo} to_phone_no
+               ,nvl((select BFCHK_SMS_FROM_NO from hs100_sllt_pjt where co_cd = '10' and pjt_cd = #{reqPjtCd}),'042-480-7114') as from_phone_no
+               , '사전점검예약' as subject
+               ,( select '[' || c.pjt_mrkg_nm || '] ' ||substr(a.bf_chk_res_dt, 1,4) || '.' || substr(a.bf_chk_res_dt, 5,2) || '.' || substr(a.bf_chk_res_dt, 7,2) || ' '
+				          || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+				          || ' 사전점검 예약신청 하셨습니다.'
+  				  from HS702_BF_CHK a
+                          , hs100_sllt_pjt c
+                          , HS701_BF_CHK_TM f
+		          where  a.co_cd = '10'
+			 	    and a.pjt_cd = #{reqPjtCd}
+                    and a.bl_cd = #{blCd}
+                    and a.rmno_cd = #{rmnoCd}
+                    and a.co_cd = c.co_cd
+                    and a.pjt_cd = c.pjt_cd
+	                and a.co_cd = f.co_cd(+)
+                    and a.pjt_cd = f.pjt_cd(+)
+                    and a.bf_chk_tm_seq = f.tm_seq(+)) as msg
+               , '10' as co_cd
+               , 'riche' as user_id
+               , 'HS'   as app_sys_code
+               , 'HMOV' as sub_sys_code
+               , 'web:bfchk_reserve' as ui_id
+               , #{custPnm} as receiver_name
+               , '' as etc1
+               , '' as etc2
+               , '' as etc3
+               , '' as etc4
+               , '' as etc5
+               , '' as etc6
+               , '' as etc7
+               , '' as etc8
+               , '' as etc9
+               , '' as etc10
+          from dual
+		]]>
+    </select>
+
+
+
+ <!--***************************************************************
+	* 설명		: 입주예약 동 조회
+	* 작성일자	: 2016-05-17
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheMiblReserveDong" resultType="map">
+		<![CDATA[
+		select distinct a.bl_cd, b.bl_nm
+		  from HS160_BL_RMNO a, HS130_PJT_BL b
+		 where a.co_cd = '10'
+		   and a.pjt_cd = #{reqPjtCd}
+		   and a.sllt_stats_cd = 'HS02001'
+		   and a.co_cd = b.co_cd
+		   and a.pjt_cd = b.pjt_cd
+		   and a.bl_cd = b.bl_cd
+		   and ( #{reqPjtCd} != '145096'
+		   		 or substr(a.bl_cd,0,2) in ('10')
+				)
+	     order by a.bl_cd
+		]]>
+    </select>
+
+    <!--***************************************************************
+	* 설명		: 입주예약 호 조회
+	* 작성일자	: 2016-05-17
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheMiblReserveHo" resultType="map">
+		<![CDATA[
+		select distinct rmno_cd
+		  from HS160_BL_RMNO a
+		 where a.co_cd = '10'
+		   and a.pjt_cd = #{reqPjtCd}
+		   and a.sllt_stats_cd = 'HS02001'
+		   and a.bl_cd = #{reqBlCd}
+		 order by a.rmno_cd
+		]]>
+    </select>
+
+	<!--***************************************************************
+	* 설명		: 입주예약 안내문구, 타이틀 조회, 예약가능일시 체크
+	* 작성일자	: 2017.10.10
+	* 작성자		: 김영로
+	****************************************************************-->
+	<select id="retrieveMiblRsltCode" resultType="map">
+	<![CDATA[
+		select  code_id
+				, code_name
+				, code_desc as info_msg
+				, chrc_prpy1 as title_img_bak
+				, fc_get_link(co_cd, no_prpy1) as title_img
+				, (case when sysdate between to_date(chrc_prpy2, 'YYYYMMDD HH24:MI') and to_date(chrc_prpy3, 'YYYYMMDD HH24:MI') then 'Y' else 'N' end) as enable_yn
+                , '예약가능기간이 아닙니다. [' || substr(chrc_prpy2,1,4) || '.' || substr(chrc_prpy2,5,2) || '.' || substr(chrc_prpy2,7,2) || ' ' || substr(chrc_prpy2,10,5) || ' ~ ' || substr(chrc_prpy3,1,4) || '.' || substr(chrc_prpy3,5,2) || '.' || substr(chrc_prpy3,7,2) || ' ' || substr(chrc_prpy3,10,5) || ']' as inform_msg
+		from	pbf_com_code
+		where	co_cd = '10'
+		and		code_group = 'HS081'
+		and		code_name = #{reqPjtCd}
+		and		use_flag = 'Y'
+   	]]>
+	</select>
+
+ <!--***************************************************************
+	* 설명		: 입주예약 정보조회
+	* 작성일자	: 2016-05-17
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheMiblReserveInfo" resultType="map">
+		<![CDATA[
+		select decode(h.mibl_str_dt, '','',substr(h.mibl_str_dt,1,4) || '-' || substr(h.mibl_str_dt,5,2) || '-' || substr(h.mibl_str_dt,7,2)) as mibl_str_dt
+				, decode(nvl(c.mibl_res_end_dt, h.mibl_end_dt), '','',substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),1,4) || '-' || substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),5,2) || '-' || substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),7,2)) as mibl_end_dt
+			    , to_char(d.mibl_ln_no) as mibl_ln_no
+			    , a.BL_CD
+				, bl.bl_nm
+                , a.RMNO_CD
+				, d.rmno_nm
+                , b.cust_pnm
+                , b.RRNO_FDGT
+			    , a.mibl_sch_dt
+			    , to_char(a.mibl_sch_tm_seq) as mibl_sch_tm_seq
+ 			    , decode(a.mibl_sch_tm_seq, null,'N', a.ladder_use_yn) as ladder_use_yn
+			    , decode(a.mibl_sch_tm_seq, null,'N', a.elvr_use_yn) as elvr_use_yn
+			    , nvl(a.mibl_hp_no, b.mp_1_no) as mibl_hp_no
+		 	    , substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~' || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2) as hhmm
+			    , a.mibl_sch_stats_cd
+			    , case when a.mibl_sch_stats_cd = 'HS07210' then '입주지정기간 : ' ||
+			                                                       substr(h.mibl_str_dt,1,4) || '.' || substr(h.mibl_str_dt,5,2) || '.' || substr(h.mibl_str_dt,7,2) || ' (' ||  (select dow from CM820_CNST_CALDR where ymdd = h.mibl_str_dt) || ')'
+			                                                       || ' ~ ' ||
+			                                                       substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),1,4) || '.' || substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),5,2) || '.' || substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),7,2) || ' (' || (select dow from CM820_CNST_CALDR where ymdd = nvl(c.mibl_res_end_dt, h.mibl_end_dt)) || ')'
+			                                                       || ''
+			            when a.mibl_sch_stats_cd = 'HS07220' then substr(a.mibl_sch_dt, 1,4) || '.' || substr(a.mibl_sch_dt, 5,2) || '.' || substr(a.mibl_sch_dt, 7,2) || ' '
+			                                                      || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+			                                                      || ' [ ' || decode(a.ladder_use_yn, 'Y', '사다리차','승강기') || ' 사용 ]'
+			                                                      || ' 신청하셨습니다.'
+			            when a.mibl_sch_stats_cd = 'HS07230' then substr(a.mibl_sch_dt, 1,4) || '.' || substr(a.mibl_sch_dt, 5,2) || '.' || substr(a.mibl_sch_dt, 7,2) || ' '
+			                                                      || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~' || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+			                                                      || ' [ ' || decode(a.ladder_use_yn, 'Y', '사다리차','승강기') || ' 사용 ]'
+			                                                      || ' 확정되었습니다.'
+			            else '' end as view_msg
+			     , a.mibl_cust_nm
+				 , to_char(to_date(g.ymdd,'yyyymmdd'),'yyyy"년" mm"월" dd"일"') AS ymdd_msg
+				 , substr(f.str_hm, 1, 2) || '시 ' ||  substr(f.str_hm, 3, 2) || '분 ~ ' || substr(f.end_hm, 1, 2) || '시 ' ||  substr(f.end_hm, 3, 2) || '분' as hhmm_msg
+ 			     , to_char(to_date(g.ymdd,'yyyymmdd'),'yyyy-mm-dd') || ' ' || g.dow as ymddyo
+ 			     , substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2) as res_time
+ 			     , decode(a.ladder_use_yn, 'Y', '사다리차','승강기') as res_type
+ 			     , a.MIBL_CUST_NM as res_cust_nm
+ 			     , a.MIBL_HP_NO as res_hp_no
+ 			     , case when a.mibl_sch_stats_cd in ('HS07220','HS07230') then substr(a.mibl_sch_dt,1,4) || '-' || substr(a.mibl_sch_dt,5,2) || '-' || substr(a.mibl_sch_dt,7,2)
+ 			     		when h.mibl_str_dt >= to_char(sysdate,'yyyymmdd') then substr(h.mibl_str_dt,1,4) || '-' || substr(h.mibl_str_dt,5,2) || '-' || substr(h.mibl_str_dt,7,2)
+ 			     		else to_char(sysdate,'yyyy-mm-dd') end as mibl_res_dt
+	    	 from HS220_SLLT_CONT a
+					 , HS800_SLLT_CUST b
+					 , hs100_sllt_pjt c
+					 , HS160_bl_rmno d
+					 , HS700_MIBL_TM f
+                     , HS130_PJT_BL bl
+					 , CM820_CNST_CALDR g
+                     , (select   FC_HS_MIBL_RES_PERIOD('10', #{reqPjtCd}, #{reqBlCd}, #{reqRmnoCd}, 'START') as mibl_str_dt
+                               , FC_HS_MIBL_RES_PERIOD('10', #{reqPjtCd}, #{reqBlCd}, #{reqRmnoCd}, 'END') as mibl_end_dt
+                          from dual
+                       ) h
+		  	    where a.co_cd = '10'
+	 		      and a.pjt_cd = #{reqPjtCd}
+			      and a.bl_cd = #{reqBlCd}
+			      and a.rmno_cd = #{reqRmnoCd}
+
+			      and a.co_cd = b.co_cd
+			      and a.sllt_cust_cd = b.sllt_cust_cd
+			      and b.RRNO_FDGT = #{reqPersFirstNo}
+			      and b.cust_pnm = trim(#{reqCustNm})
+			      and a.co_cd = c.co_cd
+			      and a.pjt_cd = c.pjt_cd
+			      and a.co_cd = d.co_cd
+			      and a.pjt_cd = d.pjt_cd
+			      and a.bl_cd = d.bl_cd
+	    		  and a.co_cd = g.co_cd(+)
+	    		  and a.mibl_sch_dt = g.ymdd(+)
+			      and a.rmno_cd = d.rmno_cd
+			      and a.co_cd = f.co_cd(+)
+			      and a.pjt_cd = f.pjt_cd(+)
+			      and a.mibl_sch_tm_seq = f.tm_seq(+)
+				  and a.co_cd = bl.co_cd
+				  and a.pjt_cd = bl.pjt_cd
+				  and a.bl_cd = bl.bl_cd
+		]]>
+    </select>
+
+    <select id="retrieveRicheMiblReserveInfoList" resultType="map">
+		<![CDATA[
+		select decode(h.mibl_str_dt, '','',substr(h.mibl_str_dt,1,4) || '-' || substr(h.mibl_str_dt,5,2) || '-' || substr(h.mibl_str_dt,7,2)) as mibl_str_dt
+				, decode(nvl(c.mibl_res_end_dt, h.mibl_end_dt), '','',substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),1,4) || '-' || substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),5,2) || '-' || substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),7,2)) as mibl_end_dt
+			    , to_char(d.mibl_ln_no) as mibl_ln_no
+			    , a.BL_CD
+                , a.RMNO_CD
+                , b.cust_pnm
+                , b.RRNO_FDGT
+			    , a.mibl_sch_dt
+			    , to_char(a.mibl_sch_tm_seq) as mibl_sch_tm_seq
+ 			    , decode(a.mibl_sch_tm_seq, null,'N', a.ladder_use_yn) as ladder_use_yn
+			    , decode(a.mibl_sch_tm_seq, null,'N', a.elvr_use_yn) as elvr_use_yn
+			    , nvl(a.mibl_hp_no, b.mp_1_no) as mibl_hp_no
+		 	    , substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~' || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2) as hhmm
+			    , a.mibl_sch_stats_cd
+			    , case when a.mibl_sch_stats_cd = 'HS07210' then '입주지정기간 : ' ||
+			                                                       substr(h.mibl_str_dt,1,4) || '.' || substr(h.mibl_str_dt,5,2) || '.' || substr(h.mibl_str_dt,7,2) || ' (' ||  (select dow from CM820_CNST_CALDR where ymdd = h.mibl_str_dt) || ')'
+			                                                       || ' ~ ' ||
+			                                                       substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),1,4) || '.' || substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),5,2) || '.' || substr(nvl(c.mibl_res_end_dt, h.mibl_end_dt),7,2) || ' (' || (select dow from CM820_CNST_CALDR where ymdd = nvl(c.mibl_res_end_dt, h.mibl_end_dt)) || ')'
+			                                                       || ''
+			            when a.mibl_sch_stats_cd = 'HS07220' then substr(a.mibl_sch_dt, 1,4) || '.' || substr(a.mibl_sch_dt, 5,2) || '.' || substr(a.mibl_sch_dt, 7,2) || ' '
+			                                                      || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+			                                                      || ' [ ' || decode(a.ladder_use_yn, 'Y', '사다리차','승강기') || ' 사용 ]'
+			                                                      || ' 신청하셨습니다.'
+			            when a.mibl_sch_stats_cd = 'HS07230' then substr(a.mibl_sch_dt, 1,4) || '.' || substr(a.mibl_sch_dt, 5,2) || '.' || substr(a.mibl_sch_dt, 7,2) || ' '
+			                                                      || substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~' || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2)
+			                                                      || ' [ ' || decode(a.ladder_use_yn, 'Y', '사다리차','승강기') || ' 사용 ]'
+			                                                      || ' 확정되었습니다.'
+			            else '' end as view_msg
+			     , a.mibl_cust_nm
+ 			     , to_char(to_date(g.ymdd,'yyyymmdd'),'yyyy-mm-dd') || ' ' || g.dow as ymddyo
+ 			     , substr(f.str_hm, 1, 2) || ':' ||  substr(f.str_hm, 3, 2) || '~'  || substr(f.end_hm, 1, 2) || ':' ||  substr(f.end_hm, 3, 2) as res_time
+ 			     , decode(a.ladder_use_yn, 'Y', '사다리차','승강기') as res_type
+ 			     , a.MIBL_CUST_NM as res_cust_nm
+ 			     , a.MIBL_HP_NO as res_hp_no
+ 			     , case when a.mibl_sch_stats_cd in ('HS07220','HS07230') then substr(a.mibl_sch_dt,1,4) || '-' || substr(a.mibl_sch_dt,5,2) || '-' || substr(a.mibl_sch_dt,7,2)
+ 			     		when h.mibl_str_dt >= to_char(sysdate,'yyyymmdd') then substr(h.mibl_str_dt,1,4) || '-' || substr(h.mibl_str_dt,5,2) || '-' || substr(h.mibl_str_dt,7,2)
+ 			     		else to_char(sysdate,'yyyy-mm-dd') end as mibl_res_dt
+	    	 from HS220_SLLT_CONT a
+					 , HS800_SLLT_CUST b
+					 , hs100_sllt_pjt c
+					 , HS160_bl_rmno d
+					 , HS700_MIBL_TM f
+					 , CM820_CNST_CALDR g
+                     , (select   FC_HS_MIBL_RES_PERIOD('10', #{reqPjtCd}, #{reqBlCd}, #{reqRmnoCd}, 'START') as mibl_str_dt
+                               , FC_HS_MIBL_RES_PERIOD('10', #{reqPjtCd}, #{reqBlCd}, #{reqRmnoCd}, 'END') as mibl_end_dt
+                          from dual
+                       ) h
+		  	    where a.co_cd = '10'
+	 		      and a.pjt_cd = #{reqPjtCd}
+			      and a.bl_cd = #{reqBlCd}
+			      and a.rmno_cd = #{reqRmnoCd}
+
+			      and a.co_cd = b.co_cd
+			      and a.sllt_cust_cd = b.sllt_cust_cd
+			      and b.RRNO_FDGT = #{reqPersFirstNo}
+			      and b.cust_pnm = trim(#{reqCustNm})
+			      and a.co_cd = c.co_cd
+			      and a.pjt_cd = c.pjt_cd
+			      and a.co_cd = d.co_cd
+			      and a.pjt_cd = d.pjt_cd
+			      and a.bl_cd = d.bl_cd
+	    		  and a.co_cd = g.co_cd(+)
+	    		  and a.mibl_sch_dt = g.ymdd(+)
+			      and a.rmno_cd = d.rmno_cd
+			      and a.co_cd = f.co_cd(+)
+			      and a.pjt_cd = f.pjt_cd(+)
+			      and a.mibl_sch_tm_seq = f.tm_seq(+)
+		]]>
+    </select>
+<!--***************************************************************
+	* 설명		: 입주예약 정보조회
+	* 작성일자	: 2016-05-17
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheMiblReserveDay" resultType="map">
+		<![CDATA[
+		 select a.ymdd
+		 	  , to_char(to_date(a.ymdd,'yyyymmdd'),'yyyy-mm-dd') as yymmdd
+	      	  , to_char(to_date(a.ymdd,'yyyymmdd'),'yyyy-mm-dd') || ' ' || a.dow as ymddyo
+	          , nvl(b.apl_cnt,0) as apl_cnt
+	          , full_cnt  - nvl(b.apl_cnt,0) as remain_cnt
+	          , d.elvr_enable_yn as elvr_select
+	          , d.ladder_enable_yn as ladder_select
+	   	   from CM820_CNST_CALDR a
+	           ,( select a.mibl_sch_dt
+	   	   			   , count(1)
+	      	   		   , count(distinct a.mibl_sch_tm_seq) as apl_cnt
+	   	 		    from HS220_SLLT_CONT a
+	   	               , HS160_BL_RMNO b
+	   			       , hs700_mibl_tm c
+	   			   where a.co_cd = '10'
+			   	     and a.pjt_cd = #{reqPjtCd}
+			   	     and a.co_cd = b.co_cd
+			   	     and a.pjt_cd = b.pjt_cd
+			   	     and a.bl_cd = b.bl_cd
+			      	 and a.bl_cd = #{blCd}
+			   	     and a.rmno_cd = b.rmno_cd
+	   	]]>
+				<if test="miblLnNo != '' and miblLnNo != null">
+					 and b.mibl_ln_no = #{miblLnNo}
+				</if>
+		<![CDATA[
+			   	     and a.co_cd = c.co_cd
+			   	     and a.pjt_cd = c.pjt_cd
+			   	     and a.mibl_sch_tm_seq = c.tm_seq
+			   	     and c.res_yn = 'Y'
+			   	   group by mibl_sch_dt
+	            ) b
+	          , ( SELECT pjt_cd
+	   	  			   , count(1) as full_cnt
+	                FROM hs700_mibl_tm
+	               WHERE co_cd  = '10'
+	                 AND res_yn  = 'Y'
+	   			     AND pjt_cd = #{reqPjtCd}
+	               group by pjt_cd
+	             ) c
+	          , (select elvr_enable_yn, ladder_enable_yn from hs160_bl_rmno where co_cd='10' and pjt_cd = #{reqPjtCd} and bl_cd = #{blCd} and rmno_cd = #{rmnoCd}) d
+	   	  where a.co_cd = '10'
+	   	    and a.ymdd between replace(#{miblStrDt},'-','')  and replace(#{miblEndDt},'-','')
+	   	    and a.ymdd >= to_char(sysdate, 'yyyymmdd')
+	        and a.ymdd = b.mibl_sch_dt(+)
+	      order by ymdd
+		]]>
+    </select>
+
+    <!--***************************************************************
+	* 설명		: 입주예약 정보조회
+	* 작성일자	: 2016-05-17
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheMiblReserveDayDtl" resultType="map">
+		<![CDATA[
+		 select
+		       #{miblResDt} as mibl_sch_dt
+		       , to_char(c.tm_seq) as mibl_sch_tm_seq
+		       , substr(c.str_hm, 1, 2) || ':' ||  substr(c.str_hm, 3, 2) || '~' || substr(c.end_hm, 1, 2) || ':' ||  substr(c.end_hm, 3, 2) AS hhmm
+		   		, case when e.elvr_enable_yn = 'N' then 'N'
+		   				  when d.elvr_enable_yn = 'Y' then 'N'
+		   				  else 'Y' end as elvr_enable_yn
+		   		, case when e.ladder_enable_yn = 'N' then 'N'
+		   				  when d.ladder_enable_yn = 'Y' then 'N'
+		   				  else 'Y' end as ladder_enable_yn
+		   		, case when #{reqPjtCd} = '145096' and #{blCd} = '1208' and replace(#{miblResDt},'-','') = '20180404' and c.tm_seq = 3 then 1
+					   when #{reqPjtCd} = '145096' and #{blCd} = '1002' and replace(#{miblResDt},'-','') = '20180517' and c.tm_seq = 4 and #{miblLnNo} = 2 then 1
+					   when #{reqPjtCd} = '145096' and #{blCd} = '1006' and replace(#{miblResDt},'-','') = '20180611' and c.tm_seq = 3 then 1
+		   			   else nvl(d.mibl_sch_tm_seq, 0) end as res_seq
+		   		, nvl(res_cnt, 0) as res_cnt
+		     from hs700_mibl_tm c
+		          ,(
+		           select
+		           a.mibl_sch_dt
+		           , a.MIBL_SCH_TM_SEQ
+		           , max(case when a.mibl_sch_tm_seq is null then 'N'
+		                                else a.ladder_use_yn end) as ladder_enable_yn
+		           , max(case when a.mibl_sch_tm_seq is null then 'N'
+		                                else a.elvr_use_yn end) as elvr_enable_yn
+		           , count(a.mibl_sch_tm_seq) as res_cnt
+		           from HS220_SLLT_CONT a
+		   				   , HS160_BL_RMNO b
+		   				   , hs700_mibl_tm c
+		           where a.co_cd = '10'
+		           and a.pjt_cd = #{reqPjtCd}
+		           and a.bl_cd = #{blCd}
+		           and a.mibl_sch_dt = replace(#{miblResDt},'-','')
+		           and a.co_cd = b.co_cd
+		           and a.pjt_cd = b.pjt_cd
+		           and a.bl_cd = b.bl_cd
+		           and a.rmno_cd = b.rmno_cd
+		]]>
+				<if test="miblLnNo != '' and miblLnNo != null">
+					and b.mibl_ln_no = #{miblLnNo}
+				</if>
+		<![CDATA[
+		   		   and a.co_cd = c.co_cd
+		   		   and a.pjt_cd = c.pjt_cd
+		   		   and a.MIBL_SCH_TM_SEQ = c.tm_seq
+		   		   and c.res_yn = 'Y'
+		           group by a.mibl_sch_dt
+		           , a.MIBL_SCH_TM_SEQ
+		          ) d
+		        , (select elvr_enable_yn, ladder_enable_yn from hs160_bl_rmno where co_cd='10' and pjt_cd = #{reqPjtCd} and bl_cd = #{blCd} and rmno_cd = #{rmnoCd}) e
+		    where c.co_cd = '10'
+		      and c.pjt_cd = #{reqPjtCd}
+		      and replace(#{miblResDt},'-','') = d.mibl_sch_dt(+)
+		      and c.tm_seq = d.mibl_sch_tm_seq(+)
+		      and c.res_yn = 'Y'
+		      
+		    group by #{miblResDt}, c.tm_seq
+		          , substr(c.str_hm, 1, 2) || ':' ||  substr(c.str_hm, 3, 2) || '~' || substr(c.end_hm, 1, 2) || ':' ||  substr(c.end_hm, 3, 2)
+		          , d.ladder_enable_yn
+		          , d.elvr_enable_yn , e.ladder_enable_yn, e.elvr_enable_yn
+		          , d.mibl_sch_tm_seq, res_cnt
+		    order by hhmm
+		]]>
+		<!-- <append where="false" condition="#{reqPjtCd}.EQ.116785" id="#1" resultType="map">
+		<![CDATA[
+		  	and 1 = case when #{miblResDt} > '20180107' and c.tm_seq in (1,2,3,4) then 1
+		  			     when #{miblResDt} <= '20180107' and c.tm_seq in (1,2,3,4,5,6)then 1
+		  			     else 0 end
+		]]>
+	    </append> -->
+    </select>
+
+    <!--***************************************************************
+	* 설명		: 입주예약 카운트 조회
+	* 작성일자	: 2016-05-19
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <select id="retrieveRicheMiblReserveCnt" resultType="map">
+		<![CDATA[
+		select count(1) as cnt
+          from HS220_SLLT_CONT a
+             , HS160_BL_RMNO b
+         where a.co_cd = '10'
+           and a.pjt_cd = #{reqPjtCd}
+           and a.bl_cd = #{blCd}
+           and a.mibl_sch_dt = #{miblResDt}
+           and a.mibl_sch_tm_seq = #{reqResTmSeq}
+           and a.co_cd = b.co_cd
+           and a.pjt_cd = b.pjt_cd
+           and a.bl_cd = b.bl_cd
+           and a.rmno_cd = b.rmno_cd
+		 ]]>
+		<if test="miblLnNo != '' and miblLnNo != null">
+			and b.mibl_ln_no = #{miblLnNo}
+		</if>
+    </select>
+
+    <!--***************************************************************
+	* 설명		: 입주예약
+	* 작성일자	: 2016-05-19
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <update id="saveRicheMiblReserve">
+		<![CDATA[
+		update HS220_SLLT_CONT a
+		   set a.mibl_hp_no = #{miblHpNo}
+			 , a.mibl_cust_nm = #{custPnm}
+			 , a.mibl_apl_dtm = sysdate
+			 , a.mibl_sch_dt = replace(#{miblResDt},'-','')
+			 , a.mibl_sch_tm_seq = #{reqResTmSeq}
+			 , a.ladder_use_yn = #{reqMiblLadderUseYn}
+			 , a.elvr_use_yn = #{reqMiblElvrUseYn}
+			 , a.mibl_sch_stats_cd = 'HS07220'
+		 where a.co_cd = '10'
+		   and a.pjt_cd = #{reqPjtCd}
+		   and a.bl_cd = #{blCd}
+		   and a.rmno_cd = #{rmnoCd}
+		   and a.mibl_sch_dt is null
+		   and a.mibl_sch_tm_seq is null
+		   and not exists (
+				select 1
+					from HS220_SLLT_CONT h
+						, HS160_BL_RMNO b
+					where h.co_cd = a.co_cd
+					and h.pjt_cd = a.pjt_cd
+					and h.co_cd = b.co_cd
+					and h.pjt_cd = b.pjt_cd
+					and h.bl_cd = b.bl_cd
+					and h.rmno_cd = b.rmno_cd
+					and b.bl_cd = #{blCd}
+	  	]]>
+				<if test="miblLnNo != '' and miblLnNo != null">
+					and b.mibl_ln_no = #{miblLnNo}
+				</if>
+		<![CDATA[
+					and h.mibl_sch_dt = #{miblResDt}
+					and h.mibl_Sch_tm_seq = #{reqResTmSeq}
+				)
+		]]>
+    </update>
+
+    <!--***************************************************************
+	* 설명		: 입주예약 취소
+	* 작성일자	: 2016-05-19
+	* 작성자	    : 남동현
+	****************************************************************-->
+    <update id="cancelRicheMiblReserve">
+		<![CDATA[
+		update HS220_SLLT_CONT
+	       set mibl_hp_no = ''
+		     , mibl_cust_nm = ''
+		     , mibl_apl_dtm = null
+		     , mibl_sch_dt = ''
+		     , mibl_sch_tm_seq = null
+		     , ladder_use_yn = 'N'
+		     , elvr_use_yn = 'N'
+		     , mibl_sch_stats_cd = 'HS07210'
+		 where co_cd = '10'
+		   and pjt_cd = #{reqPjtCd}
+		   and bl_cd = #{blCd}
+		   and rmno_cd = #{rmnoCd}
+		]]>
+    </update>
+
+
+	<!--***************************************************************
+	* 설명		: 사전점검방문 SMS 발송 정보
+	* 작성일자	: 2023-06-13
+	* 작성자	    : (플레어) 한동호
+	****************************************************************-->
+	<select id="retrieveRicheBfchkReserveSmsInfo" resultType="map">
+		<![CDATA[
+		SELECT
+			'' ||
+			#{miblHpNo}  to_phone_no  -- 수신자번호
+			 , (select bfchk_sms_from_no from hs100_sllt_pjt where co_cd = '10' and pjt_cd = #{reqPjtCd}) as from_phone_no -- 발송자 번호
+			 , '제목' as subject -- 문자 제목
+			 , '' as msg -- 메시지 내용
+			 , '10' as co_cd
+			 , 'riche' as user_id
+			 , 'HS'   as app_sys_code
+			 , 'HMOV' as sub_sys_code
+			 , 'web:bfchk_reserve' as ui_id
+			 , #{custPnm} as receiver_name -- 신청자 명
+			 , '' as etc1
+			 , '' as etc2
+			 , '' as etc3
+			 , '' as etc4
+			 , '' as etc5
+			 , '' as etc6
+			 , '' as etc7
+			 , '' as etc8
+			 , '' as etc9
+			 , '' as etc10
+		from dual
+		]]>
+    </select>
+
+	<!--***************************************************************
+	* 설명		: 입주예약 SMS 발송 정보
+	* 작성일자	: 2023-06-13
+	* 작성자	    : (플레어) 한동호
+	****************************************************************-->
+	<select id="retrieveRicheMiblReserveSmsInfo" resultType="map">
+		<![CDATA[
+		SELECT
+			 '' ||
+			 #{miblHpNo} as to_phone_no  -- 수신자번호
+			 , (select mibl_sms_from_no from hs100_sllt_pjt where co_cd = '10' and pjt_cd = #{reqPjtCd}) as from_phone_no -- 발송자 번호
+			 , '제목' as subject -- 문자 제목
+			 , '' as msg -- 메시지 내용
+			 , '10' as co_cd
+			 , 'riche' as user_id
+			 , 'HS'   as app_sys_code
+			 , 'HMOV' as sub_sys_code
+			 , 'web:mibl_reserve' as ui_id
+			 , #{custPnm} as receiver_name -- 신청자 명
+			 , '' as etc1
+			 , '' as etc2
+			 , '' as etc3
+			 , '' as etc4
+			 , '' as etc5
+			 , '' as etc6
+			 , '' as etc7
+			 , '' as etc8
+			 , '' as etc9
+			 , '' as etc10
+		from dual
+		]]>
+    </select>
+
+	<!--***************************************************************
+	* 설명		: 사전점검방문, 입주예약 SMS 발송
+	* 작성일자	: 2023-06-15
+	* 작성자	    : (플래어) 한동호
+	****************************************************************-->
+	<insert id="sendSms" parameterType="map" statementType="CALLABLE">
+		<![CDATA[
+        {call pr_co_send_sms(
+                    '10',
+                    #{TO_PHONE_NO,	mode=IN, jdbcType=VARCHAR} , -- 수신자번호
+					#{FROM_PHONE_NO,mode=IN, jdbcType=VARCHAR}, -- 발신자번호
+					#{SUBJECT,		mode=IN, jdbcType=VARCHAR}, -- 문자 제목
+					#{MSG,			mode=IN, jdbcType=VARCHAR}, -- 문자내용
+					#{USER_ID,		mode=IN, jdbcType=VARCHAR},
+					#{APP_SYS_CODE,	mode=IN, jdbcType=VARCHAR},
+					#{SUB_SYS_CODE,	mode=IN, jdbcType=VARCHAR},
+					#{UI_ID,		mode=IN, jdbcType=VARCHAR},
+					#{RECEIVER_NAME,mode=IN, jdbcType=VARCHAR},
+					#{ETC1,			mode=IN, jdbcType=VARCHAR},
+					#{ETC2,			mode=IN, jdbcType=VARCHAR},
+					#{ETC3,			mode=IN, jdbcType=VARCHAR},
+					#{ETC4,			mode=IN, jdbcType=VARCHAR},
+					#{ETC5,			mode=IN, jdbcType=VARCHAR},
+					#{ETC6,			mode=IN, jdbcType=VARCHAR},
+					#{ETC7,			mode=IN, jdbcType=VARCHAR},
+					#{ETC8,			mode=IN, jdbcType=VARCHAR},
+					#{ETC9,			mode=IN, jdbcType=VARCHAR},
+					#{ETC10,		mode=IN, jdbcType=VARCHAR}
+              )}
+		]]>
+	</insert>
+
+
+</mapper>

@@ -1,0 +1,11 @@
+@charset "UTF-8";
+
+/* reset */
+* {margin:0;padding:0;word-break:keep-all; font-family: 'Noto Sans KR';}
+ul, ol, li { list-style: none}
+img, fieldset, iframe { border: 0 none}
+button { cursor:pointer; border:0 none}
+table { border-collapse: collapse}
+legend,caption {display:none}
+a { color: #666; text-decoration: none}
+hr {display: none}

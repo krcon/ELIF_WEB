@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="member">
+	<sql id="memberColumn">
+		co_cd,
+		user_id,
+		password,
+		user_nm,
+		yymmdd,
+		zipcd,
+		ftn_addr,
+		dtl_addr,
+		area_fg_cd,
+		phone1,
+		phone2,
+		phone3,
+		email,
+		hp1,
+		hp2,
+		hp3,
+		hp1||'-'||hp2||'-'||hp3 as hp,
+		deptsit_yn,
+		deposit_yymm,
+		email_send_yn,
+		sms_send_yn,
+		agree_yn,
+		live_fg_cd1,
+		live_fg_cd2,
+		marry_fg_cd,
+		fnl_login_dtm,
+		fst_reg_dtm,
+		login_cnt,
+		sllt_cust_cd,
+		dormancy_dt,
+		user_type,
+		pwd_update_dtm,
+		CASE WHEN pwd_update_dtm > ADD_MONTHS(sysdate,-6) THEN 'none' ELSE 'change' END  pwd_update_bool, 
+		send_mail_dtm
+	</sql>
+	<sql id="memberWhere">
+		<if test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'all'">
+				and (user_nm like '%${keyword}%' OR EMAIL like '%${keyword}%' OR USERID like '%${keyword}%')
+				</when> 
+				<otherwise>
+				and ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+		</if>
+		<if test="user_id != '' and user_id != null">
+			<![CDATA[
+			and user_id = #{user_id}
+			]]>
+		</if>
+		<if test="user_nm != '' and user_nm != null">
+			<![CDATA[
+			and user_nm = #{user_nm}
+			]]>
+		</if>
+		<if test="user_type != '' and user_type != null">
+			<![CDATA[
+			and user_type = #{user_type}
+			]]>
+		</if>
+		<if test="sdate != '' and sdate != null">
+			<![CDATA[
+			and TO_CHAR(fst_reg_dtm, 'YYYY-MM-DD') >= #{sdate}
+			]]>
+		</if>
+		<if test="edate != '' and edate != null">
+			<![CDATA[
+			and TO_CHAR(fst_reg_dtm, 'YYYY-MM-DD') <= #{edate}
+			]]>
+		</if>
+		<if test="hp != '' and hp != null">
+			<![CDATA[
+			and hp1||''||hp2||''||hp3 = #{hp}
+			]]>
+		</if>
+	</sql>
+	<select id="selectMemberCount" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(*) as CNT
+			FROM
+				RV710_CUST_INFO
+			]]>
+			<where>
+			<include refid="memberWhere" />
+			</where>
+	</select>
+	<select id="selectMemberList" resultType="com.krcon.elif.vo.Member">
+		<![CDATA[
+		SELECT
+			COUNT(*) OVER() AS TOTAL_COUNT,
+			AA.*
+		FROM(  
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+		]]>
+		<include refid="memberColumn" />
+		<![CDATA[
+			FROM
+				RV710_CUST_INFO
+			]]>
+			<where>
+			<include refid="memberWhere" />
+			</where>
+			<![CDATA[ 
+			) AA
+			]]>
+			<if test="end != '' and end != null">
+			<![CDATA[
+				AND RNUM BETWEEN #{start} AND #{end}
+			]]>
+			</if>
+		<![CDATA[
+		ORDER BY fst_reg_dtm DESC
+		]]>
+		
+	</select>
+	
+	<select id="selectMemberDetail" resultType="com.krcon.elif.vo.Member">
+		<![CDATA[
+			SELECT
+			]]>
+			<include refid="memberColumn" />
+			<![CDATA[
+			FROM
+				RV710_CUST_INFO
+			]]>
+			<where>
+			<include refid="memberWhere" />
+			<![CDATA[
+			AND ROWNUM= 1
+			]]>
+			</where>
+			<![CDATA[
+			ORDER BY fst_reg_dtm DESC
+			]]>
+	</select>
+	<insert id="insertMember">
+		<![CDATA[
+			INSERT INTO RV710_CUST_INFO
+			(
+				co_cd,
+				user_id,
+				password,
+				user_nm,
+				yymmdd,
+				zipcd,
+				ftn_addr,
+				dtl_addr,
+				phone1,
+				phone2,
+				phone3,
+				email,
+				hp1,
+				hp2,
+				hp3,
+				]]>
+				<if test="deptsit_yn != '' and deptsit_yn != null">
+					<![CDATA[
+					deptsit_yn,
+					]]>
+				</if>
+				<if test="deposit_yymm != '' and deposit_yymm != null">
+					<![CDATA[
+					deposit_yymm,
+					]]>
+				</if>
+				<if test="marry_fg_cd != '' and marry_fg_cd != null">
+					<![CDATA[
+					marry_fg_cd,
+					]]>
+				</if>
+				<if test="live_fg_cd1 != '' and live_fg_cd1 != null">
+					<![CDATA[
+					live_fg_cd1,
+					]]>
+				</if>
+				<if test="live_fg_cd2 != '' and live_fg_cd2 != null">
+					<![CDATA[
+					live_fg_cd2,
+					]]>
+				</if>
+				<![CDATA[
+				email_send_yn,
+				sms_send_yn,
+				agree_yn,
+				fst_reg_dtm,
+				login_cnt,
+				user_type
+			)
+			VALUES
+			(
+				${db.cocd},
+				#{user_id},
+				#{password},
+				#{user_nm},
+				#{yymmdd},
+				#{zipcd},
+				#{ftn_addr},
+				#{dtl_addr},
+				#{phone1},
+				#{phone2},
+				#{phone3},
+				#{email},
+				#{hp1},
+				#{hp2},
+				#{hp3},
+				]]>
+				<if test="deptsit_yn != '' and deptsit_yn != null">
+					<![CDATA[
+					#{deptsit_yn},
+					]]>
+				</if>
+				<if test="deposit_yymm != '' and deposit_yymm != null">
+					<![CDATA[
+					#{deposit_yymm},
+					]]>
+				</if>
+				<if test="marry_fg_cd != '' and marry_fg_cd != null">
+					<![CDATA[
+					#{marry_fg_cd},
+					]]>
+				</if>
+				<if test="live_fg_cd1 != '' and live_fg_cd1 != null">
+					<![CDATA[
+					#{live_fg_cd1},
+					]]>
+				</if>
+				<if test="live_fg_cd2 != '' and live_fg_cd2 != null">
+					<![CDATA[
+					#{live_fg_cd2},
+					]]>
+				</if>
+				<![CDATA[
+				#{email_send_yn},
+				#{sms_send_yn},
+				#{agree_yn},
+				SYSDATE,
+				#{login_cnt},
+				'S'
+				
+				
+			)
+		]]>
+	</insert>
+	
+	<update id="updateMember">
+			<![CDATA[
+			UPDATE RV710_CUST_INFO 
+			SET
+				password = #{password},
+				pwd_update_dtm = SYSDATE,
+				zipcd = #{zipcd},
+				ftn_addr = #{ftn_addr},
+				dtl_addr = #{dtl_addr},
+				phone1 = #{phone1},
+				phone2 = #{phone2},
+				phone3 = #{phone3},
+				email = #{email},
+				]]>
+				<if test="deptsit_yn != '' and deptsit_yn != null">
+					<![CDATA[
+					deptsit_yn = #{deptsit_yn},
+					]]>
+				</if>
+				<if test="deposit_yymm != '' and deposit_yymm != null">
+					<![CDATA[
+					deposit_yymm = #{deposit_yymm},
+					]]>
+				</if>
+				<if test="marry_fg_cd != '' and marry_fg_cd != null">
+					<![CDATA[
+					marry_fg_cd = #{marry_fg_cd},
+					]]>
+				</if>
+				<if test="live_fg_cd1 != '' and live_fg_cd1 != null">
+					<![CDATA[
+					live_fg_cd1 = #{live_fg_cd1},
+					]]>
+				</if>
+				<if test="live_fg_cd2 != '' and live_fg_cd2 != null">
+					<![CDATA[
+					live_fg_cd2 = #{live_fg_cd2},
+					]]>
+				</if>
+				<![CDATA[
+				email_send_yn = #{email_send_yn},
+				sms_send_yn = #{sms_send_yn},
+				agree_yn = #{agree_yn}
+			WHERE
+				user_id = #{user_id}    
+			]]>
+	</update>
+	<update id="updateLogin">
+		<![CDATA[
+			UPDATE RV710_CUST_INFO 
+			SET
+				login_cnt = login_cnt + 1,
+				fnl_login_dtm = SYSDATE
+			WHERE
+				user_id = #{user_id}    
+		]]>
+	</update>
+	<update id="updateMemberPwd">
+		<![CDATA[
+			UPDATE RV710_CUST_INFO 
+			SET
+			password = #{password},
+			pwd_update_dtm = SYSDATE
+			]]>
+			<where>
+				user_id = #{user_id}
+			</where>
+	</update>
+
+	<select id="selectMemberDupCount" resultType="int">
+		<![CDATA[
+		SELECT count(*) FROM (
+			SELECT
+				user_id
+			FROM
+				RV710_CUST_INFO
+			UNION ALL
+			SELECT
+				user_id
+			FROM
+				RV712_CUST_INFO_SECEDE
+		)
+		]]>
+		<where>
+			and user_id = #{user_id}
+		</where>
+	</select>
+	<select id="selectMemberDormancy" resultType="com.krcon.elif.vo.Member">
+	<![CDATA[
+	SELECT
+		USER_ID ,
+		USER_NM ,
+		EMAIL ,
+		LOGIN_CNT ,
+		FNL_LOGIN_DTM,
+		ADD_MONTHS(sysdate, ${dormancy_date}) AS dormancy_yymmdd,
+		ADD_MONTHS(FNL_LOGIN_DTM, 12) AS DORMANCY_DT
+	FROM
+		RV710_CUST_INFO
+	WHERE
+		FNL_LOGIN_DTM IS NOT NULL
+		AND FNL_LOGIN_DTM < ADD_MONTHS(sysdate, ${dormancy_date}) 
+		]]>
+		<if test="dormancy_date == -11">		
+		<![CDATA[
+		AND SEND_MAIL_DTM IS NULL
+		]]>
+		</if>
+	</select>
+
+	<update id="dormancyEmailMember">
+		<![CDATA[
+			UPDATE RV710_CUST_INFO 
+			SET
+				send_mail_dtm = SYSDATE
+			]]>
+			<where>
+				user_id = #{user_id}
+			</where>
+	</update>
+	<update id="dormancyMember">
+		<![CDATA[
+			UPDATE RV710_CUST_INFO 
+			SET
+				user_type = 'H',
+				dormancy_dt = SYSDATE
+			]]>
+			<where>
+				user_id = #{user_id}
+			</where>
+	</update>
+	<update id="updateMemberPwdDormancy">
+		<![CDATA[
+			UPDATE RV710_CUST_INFO 
+			SET
+			password = #{password},
+			pwd_update_dtm = SYSDATE,
+			user_type = 'S',
+			dormancy_dt = null,
+			send_mail_dtm = null
+			]]>
+			<where>
+				user_id = #{user_id}
+			</where>
+	</update>
+	<update id="deleteMember">
+		<![CDATA[
+			DELETE FROM RV710_CUST_INFO
+			WHERE
+			user_id = #{user_id}
+		]]>
+	</update>
+	<insert id="insertMemberSecede">
+		<![CDATA[
+			INSERT INTO RV712_CUST_INFO_SECEDE
+			(
+				co_cd,
+				user_id,
+				password,
+				user_nm,
+				yymmdd,
+				secede_dtm
+			)
+			VALUES
+			(
+				${db.cocd},
+				#{user_id},
+				#{password},
+				#{user_nm},
+				#{yymmdd},
+				SYSDATE
+			)
+		]]>
+	</insert>
+</mapper>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64.026" height="75.242" viewBox="0 0 64.026 75.242">
+  <g id="ico" transform="translate(81.352 -5.868)">
+    <g id="Layer_3" data-name="Layer 3">
+      <path id="패스_102" data-name="패스 102" d="M-49.333,78.247H-78.852V8.368h54.972V47.96" fill="none" stroke="#d4dab3" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+      <rect id="사각형_206" data-name="사각형 206" width="37" height="25.5" transform="translate(-69.524 18.025)" fill="#d4dab3"/>
+      <path id="패스_103" data-name="패스 103" d="M-51.024,47.692l3.753-6.5h-7.506Z" fill="#d4dab3"/>
+    </g>
+    <g id="Layer_5" data-name="Layer 5">
+      <circle id="타원_55" data-name="타원 55" cx="13.446" cy="13.446" r="13.446" transform="translate(-44.218 54.218)" fill="#054438"/>
+      <g id="그룹_163" data-name="그룹 163">
+        <line id="선_124" data-name="선 124" x2="8.003" y2="8.003" transform="translate(-34.774 63.662)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        <line id="선_125" data-name="선 125" x1="8.003" y2="8.003" transform="translate(-34.774 63.662)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+      </g>
+    </g>
+  </g>
+</svg>

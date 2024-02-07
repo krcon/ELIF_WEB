@@ -1,0 +1,531 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="customer">
+
+	<sql id="customerColumn">
+		tc.idx,
+		tc.pjt_cd,
+		tc.type,
+		(select CODE_NAME from RV900_COM_CD where CODE_ID=tc.type) as type_name,
+		tc.user_id,
+		tc.title,
+		tc.inquiry_content,
+		tc.crea_dtm,
+		tc.reply_status,
+		(select CODE_NAME from RV900_COM_CD where CODE_ID=tc.reply_status) as reply_status_name,
+		tc.reply_name,
+		tc.reply_id,
+		tc.reply_content,
+		tc.reply_dtm,
+		
+		rci.user_nm,
+		rci.email,
+		rci.hp1||'-'||rci.hp2||'-'||rci.hp3 as tel,
+		tcx.pjt_nm AS complex_name
+	</sql>
+
+	<sql id="customerWhere">
+		<choose>
+		<when test="all != '' and all != null">
+		AND (tc.TITLE LIKE '%' +  #{all} + '%')
+		</when>
+		<when test="title != '' and title != null">
+		AND tc.TITLE LIKE '%' +  #{title} + '%'
+		</when>
+		<when test="keyword != '' and keyword != null">
+		<choose>
+			<when test="target == 'all'">
+			AND (NAME like '%${keyword}%' OR EMAIL like '%${keyword}%' OR tc.TITLE like '%${keyword}%' OR inquiry_content like '%${keyword}%')
+			</when> 
+			<otherwise>
+			AND ${target} like '%${keyword}%'
+			</otherwise>
+		</choose>
+		</when>
+		</choose>
+		<choose>
+		<when test="lang != '' and lang != null">
+		AND LANG = #{lang}
+		</when>
+		</choose>
+		<choose>	
+		<when test="reply_status != '' and reply_status != null">
+		AND REPLY_STATUS = #{reply_status}
+		</when>
+		</choose>	
+		<choose>	
+		<when test="user_id != null">
+		AND tc.user_id = #{user_id}
+		</when>
+		</choose>	
+		<if test="sdate != null and sdate != ''">
+			<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') >= '${sdate}'
+			]]>
+		</if>
+		<if test="edate != null and edate != ''">
+			<![CDATA[
+			and TO_CHAR(CREA_DTM, 'YYYY-MM-DD') <= '${edate}'
+			]]>
+		</if>
+	</sql>
+
+	 <select id="selectInquiryCount" resultType="int">
+		SELECT 
+			COUNT(*) as CNT
+			FROM RV740_CUSTOMER tc
+			LEFT JOIN RV710_CUST_INFO rci ON rci.user_id=tc.user_id
+			LEFT JOIN RV100_PJT tcx ON tcx.pjt_cd=tc.pjt_cd
+		<where>
+		<include refid="customerWhere" />
+		</where>
+	</select>
+	 <select id="selectInquiryList" resultType="com.krcon.elif.vo.Customer">
+		SELECT
+            COUNT(*) OVER() AS TOTAL_COUNT,
+            AA.*
+        FROM(  
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY tc.CREA_DTM DESC) RNUM,
+			<include refid="customerColumn" />
+			FROM RV740_CUSTOMER tc
+			LEFT JOIN RV710_CUST_INFO rci ON rci.user_id=tc.user_id
+			LEFT JOIN RV100_PJT tcx ON tcx.pjt_cd=tc.pjt_cd
+			<where>
+			<include refid="customerWhere" />
+			</where>
+		  ) AA
+		  <where>
+		  <if test="end != '' and end != null">
+		  <![CDATA[
+			  AND RNUM BETWEEN #{start} AND #{end}
+		  ]]>
+		  </if>
+		  </where>
+		 ORDER BY CREA_DTM DESC
+	</select>
+	<!-- 고객관리 제품문의 -->
+	 <select id="selectInquiry" resultType="com.krcon.elif.vo.Customer">
+		SELECT 
+			<include refid="customerColumn" />
+			FROM RV740_CUSTOMER tc
+			LEFT JOIN RV710_CUST_INFO rci ON rci.user_id=tc.user_id
+			LEFT JOIN RV100_PJT tcx ON tcx.pjt_cd=tc.pjt_cd
+		  <where>
+		  	tc.IDX = #{idx}
+			<include refid="customerWhere" />
+		</where>
+		 ORDER BY CREA_DTM DESC
+	</select>
+	
+	<update id="updateInquiryStatus" >
+	        UPDATE RV740_CUSTOMER
+	          SET 
+	             reply_status = #{reply_status},
+	             reply_content = #{reply_content},
+	             reply_id = #{reply_id},
+	             reply_name = #{reply_name},
+				 reply_dtm = SYSDATE
+	         WHERE IDX = #{idx}
+	</update>
+	<update id="deleteInquiry" >
+	        DELETE FROM RV740_CUSTOMER
+	        WHERE IDX
+			<choose>
+				<when test="paramIdx!=null">
+					IN  
+					<foreach item="item" index="index" collection="paramIdx"  open="(" separator="," close=")">
+					#{item}
+					</foreach>
+				</when>
+				<otherwise>
+				= ${idx}
+				</otherwise>
+			</choose>
+	</update>
+	
+	<select id="selectInquiryDeleteCount" resultType="int">
+		<![CDATA[
+		SELECT 
+			COUNT(*) as CNT
+		FROM RV740_CUSTOMER tc
+		LEFT JOIN RV710_CUST_INFO rci ON rci.user_id=tc.user_id
+		LEFT JOIN RV100_PJT tcx ON tcx.pjt_cd=tc.pjt_cd
+		 WHERE crea_dtm < (SYSDATE + (INTERVAL '3' YEAR))
+		 ]]> 
+	</select>
+	<select id="selectInquiryDeleteList" resultType="com.krcon.elif.vo.Customer">
+		<![CDATA[
+		SELECT 
+		]]> 
+			<include refid="customerColumn" />
+		<![CDATA[
+		FROM RV740_CUSTOMER tc
+		LEFT JOIN RV710_CUST_INFO rci ON rci.user_id=tc.user_id
+		LEFT JOIN RV100_PJT tcx ON tcx.pjt_cd=tc.pjt_cd
+		 WHERE tc.crea_dtm < (SYSDATE + (INTERVAL '3' YEAR))
+		 ORDER BY tc.crea_dtm DESC
+		 ]]> 
+	</select>
+	
+	<update id="deleteInquiryAll" >
+	     <![CDATA[
+	        DELETE FROM RV740_CUSTOMER
+	         WHERE crea_dtm < (SYSDATE + (INTERVAL '3' YEAR))
+	    ]]> 
+	</update>
+	
+	<insert id="insertCustomer" useGeneratedKeys="true" keyProperty="idx" keyColumn="idx" >
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV740_CUSTOMER_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+		   INSERT INTO RV740_CUSTOMER(
+			   idx,
+			   lang,
+			   type,
+			   pjt_cd,
+			   user_id,
+			   title,
+			   inquiry_content,
+			   reply_status,
+			   crea_dtm
+		   ) VALUES(
+				${idx},
+				'KO',
+				#{type},
+				#{pjt_cd},
+				#{user_id},
+			   #{title},
+			   #{inquiry_content},
+			   'RV02301',
+			   SYSDATE
+		   )
+	   ]]>
+   </insert>
+	
+	<!-- 고객문의 담당자 -->
+	<select id="selectAdmin" resultType="com.krcon.elif.vo.Customer">
+		SELECT
+			AA.*
+		FROM(  
+			SELECT
+			ROW_NUMBER() OVER (ORDER BY tca.IDX DESC) RNUM,
+			tca.idx,
+			tca.lang,
+			ta.name,
+			ta.email,
+			ta.department,
+			ta.userid,
+			tca.crea_name,
+			tca.crea_dtm
+		  FROM RV741_CUSTOMER_ADMIN tca
+		  LEFT OUTER JOIN RV700_ADMIN ta ON tca.userid=ta.userid
+		  ) AA
+		  WHERE IDX = #{idx}
+		 ORDER BY CREA_DTM DESC
+	</select>
+	 <select id="selectAdminCount" resultType="int">
+		SELECT 
+			COUNT(*) as CNT
+		  FROM RV741_CUSTOMER_ADMIN
+		  <where>
+			 <choose>
+				<when test="keyword != '' and keyword != null">
+				<choose>
+					<when test="target == 'userid'">
+					AND userid=#{keyword}
+					</when> 
+					<when test="target == 'all'">
+					AND (NAME like '%${keyword}%' OR EMAIL like '%${keyword}%' OR department like '%${keyword}%')
+					</when> 
+					<otherwise>
+					AND ${target} like '%${keyword}%'
+					</otherwise>
+				</choose>
+		    	</when>
+			</choose>
+		</where>
+	</select>
+	 <select id="selectAdminList" resultType="com.krcon.elif.vo.Customer">
+		SELECT
+			AA.*
+		FROM(  
+			SELECT
+			ROW_NUMBER() OVER (ORDER BY tca.IDX DESC) RNUM,
+			tca.idx,
+			tca.lang,
+			ta.name,
+			ta.email,
+			ta.department,
+			ta.userid,
+			tca.crea_name,
+			tca.crea_dtm
+		  FROM RV741_CUSTOMER_ADMIN tca
+		  LEFT OUTER JOIN RV700_ADMIN ta ON tca.userid=ta.userid
+        ) AA
+		<where>
+		<choose>
+			<when test="keyword != '' and keyword != null">
+			<choose>
+				<when test="target == 'userid'">
+				AND userid=#{keyword}
+				</when> 
+				<when test="target == 'all'">
+				AND (NAME like '%${keyword}%' OR EMAIL like '%${keyword}%' OR DEPARTMENT like '%${keyword}%')
+				</when> 
+				<otherwise>
+				AND ${target} like '%${keyword}%'
+				</otherwise>
+			</choose>
+			</when>
+		</choose>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+		</where>
+		 ORDER BY CREA_DTM DESC
+	</select>
+	
+	<select id="selectAdminInCharge" resultType="com.krcon.elif.vo.Customer">
+		SELECT 
+			tca.idx,
+			tca.lang,
+			ta.name,
+			ta.email,
+			ta.department,
+			ta.userid,
+			tca.crea_name,
+			tca.crea_dtm
+		FROM RV741_CUSTOMER_ADMIN tca
+		LEFT OUTER JOIN RV700_ADMIN ta ON tca.userid=ta.userid
+		 <where>
+		<if test="merge_dtm != null">
+			<![CDATA[
+			AND TO_DATE(tca.CREA_DTM, 'yyyy-MM-dd HH24:MI:SS') <=TO_DATE(#{merge_dtm}, 'yyyy-MM-dd HH24:MI:SS')
+			]]>
+		</if>
+		</where>
+		 ORDER BY tca.CREA_DTM DESC
+	</select>
+	
+	
+	<insert id="insertAdmin" useGeneratedKeys="true" keyProperty="idx" keyColumn="IDX" >
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV741_CUSTOMER_ADMIN_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+	     <![CDATA[
+	        INSERT INTO RV741_CUSTOMER_ADMIN(
+				idx,
+				lang,
+				userid,
+				crea_name,
+				crea_id,
+				crea_dtm
+	        ) VALUES(
+				#{idx},
+	            #{lang},
+				#{userid},
+				#{crea_name},
+				#{crea_id},
+				SYSDATE
+	        )
+	    ]]>
+	</insert>
+	
+	<insert id="insertAdminFull" useGeneratedKeys="true" keyProperty="idx" keyColumn="IDX" >
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV741_CUSTOMER_ADMIN_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+	     <![CDATA[
+	        INSERT INTO RV741_CUSTOMER_ADMIN(
+				idx,
+				lang,
+				name,
+				email,
+				department,
+				userid,
+				crea_name,
+				crea_id,
+				crea_dtm
+	        ) VALUES(
+				#{idx},
+	            #{lang},
+				#{name},
+				#{email},
+				#{department},
+				#{userid},
+				#{crea_name},
+				#{crea_id},
+				SYSDATE
+	        )
+	    ]]>
+	</insert>
+	
+	<update id="updateAdmin" >
+	        UPDATE RV741_CUSTOMER_ADMIN
+	          SET 
+	             upda_name = #{upda_name}
+	            ,upda_id = #{upda_id}
+			 	,upda_dtm = SYSDATE
+	           <if test="lang != '' and lang != null">
+	            ,lang = #{lang}
+	           </if>
+	           <if test="name != '' and name != null">
+	            ,name = #{name}
+	           </if>
+	           <if test="email != '' and email != null">
+	            ,email = #{email}
+	           </if>
+	           <if test="department != '' and department != null">
+	            ,department = #{department}
+	           </if>
+	         WHERE IDX = #{idx}
+	</update>
+	<update id="deleteAdmin" >
+	     <![CDATA[
+	        DELETE FROM RV741_CUSTOMER_ADMIN
+	         WHERE IDX = #{idx}
+	    ]]>
+	</update>
+	
+	<!-- 고객관리 뉴스레터 -->
+	<select id="selectNewsletter" resultType="com.krcon.elif.vo.Customer">
+		SELECT 
+			idx,
+			company,
+			department,
+			name,
+			email,
+			interest,
+			tel,
+			lang,
+			nation as nation_alpha,
+			(select kor_name from RV707_COUNTRIES where alpha2 = RV742_CUSTOMER_NEWLETTER.nation) as nation,
+			crea_dtm
+		  FROM RV742_CUSTOMER_NEWLETTER
+		  WHERE IDX = #{idx}
+		<choose>
+			<when test="company != '' and company != null">
+			COMPANY = #{company}
+			</when> 
+		</choose>
+		 ORDER BY CREA_DTM DESC
+	</select>
+	<select id="selectNewsletterCount" resultType="int">
+		SELECT 
+			COUNT(*) as CNT
+		  FROM RV742_CUSTOMER_NEWLETTER
+		  <where>
+			 <choose>
+				<when test="all != '' and all != null">
+				AND (COMPANY LIKE '%' +  #{all} + '%' OR pjt_cd LIKE '%' + #{all} + '%' OR NAME LIKE '%' + #{all} + '%' OR LANG LIKE '%' + #{all} + '%')
+				</when>
+				<when test="keyword != '' and keyword != null">
+				<choose>
+					<when test="target == 'all'">
+					AND (NAME like '%${keyword}%' OR EMAIL like '%${keyword}%' OR pjt_cd like '%${keyword}%'  )
+					</when> 
+					<otherwise>
+					AND ${target} like '%${keyword}%'
+					</otherwise>
+				</choose>
+		    	</when>
+				<when test="pjt_cd != '' and pjt_cd != null">
+				AND pjt_cd LIKE '%' + #{pjt_cd} + '%'
+				</when>
+				<when test="name != '' and name != null">
+				AND NAME LIKE '%' + #{name} + '%'
+				</when>
+				<when test="lang != '' and lang != null">
+				AND LANG LIKE '%' + #{lang} + '%'
+				</when>
+			 </choose>
+		</where>
+	</select>
+	<select id="selectNewsletterList" resultType="com.krcon.elif.vo.Customer">
+		SELECT
+			COUNT(*) OVER() AS TOTAL_COUNT,
+			AA.*
+		FROM(  
+			SELECT
+			ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+			idx,
+			pjt_cd,
+			name,
+			email,
+			interest,
+			tel,
+			lang,
+			nation as nation_alpha,
+			(select kor_name from RV707_COUNTRIES where alpha2 = RV742_CUSTOMER_NEWLETTER.nation) as nation,
+			crea_dtm
+		  FROM RV742_CUSTOMER_NEWLETTER
+		  <where>
+			 <choose>
+				<when test="all != '' and all != null">
+				AND (COMPANY LIKE '%' +  #{all} + '%' OR pjt_cd LIKE '%' + #{all} + '%' OR NAME LIKE '%' + #{all} + '%' OR LANG LIKE '%' + #{all} + '%')
+				</when>
+				<when test="keyword != '' and keyword != null">
+				<choose>
+					<when test="target == 'all'">
+					AND (NAME like '%${keyword}%' OR EMAIL like '%${keyword}%' OR pjt_cd like '%${keyword}%'  )
+					</when> 
+					<otherwise>
+					AND ${target} like '%${keyword}%'
+					</otherwise>
+				</choose>
+		    	</when>
+				<when test="pjt_cd != '' and pjt_cd != null">
+				AND pjt_cd LIKE '%' + #{pjt_cd} + '%'
+				</when>
+				<when test="name != '' and name != null">
+				AND NAME LIKE '%' + #{name} + '%'
+				</when>
+				<when test="lang != '' and lang != null">
+				AND LANG LIKE '%' + #{lang} + '%'
+				</when>
+			 </choose>
+		</where>
+        ) AA
+		<where>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+		</where>
+		 ORDER BY CREA_DTM DESC
+	</select>
+	
+	<select id="selectNewsletterExcel" resultType="com.krcon.elif.vo.Customer">
+		SELECT 
+			idx,
+			company,
+			department,
+			name,
+			email,
+			interest,
+			tel,
+			lang,
+			nation as nation_alpha,
+			(select kor_name from RV707_COUNTRIES where alpha2 = RV742_CUSTOMER_NEWLETTER.nation) as nation,
+			crea_dtm
+		  FROM RV742_CUSTOMER_NEWLETTER
+		 ORDER BY CREA_DTM DESC
+	</select>
+	
+	<update id="deleteNewsletter" >
+	     <![CDATA[
+	        DELETE 
+			FROM 
+				RV742_CUSTOMER_NEWLETTER
+			WHERE 
+				IDX = #{idx}
+	    ]]>
+	</update>
+	
+</mapper>

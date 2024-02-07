@@ -1,0 +1,483 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+<%@ taglib prefix="ct" uri="/WEB-INF/tlds/common.tld"%>
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <%@ include file="../include/head.jsp" %>
+    <meta name="title" content="분양대금 납부조회, 엘리프"/>
+    <meta name="keywords" content="분양대금 납부 조회, 중도금 조회, 입금내역, 예상 입금액, MY ELIF, 엘리프"/>
+    <meta name="description" content="고객님의 분양대금을 조회할 수 있습니다."/>
+    <meta property="og:title" content="분양대금 납부조회, 엘리프">
+    <meta property="og:description" content="고객님의 분양대금을 조회할 수 있습니다.">
+    <meta property="og:image" content="/resources/mobile/images/common/og_elif.png" />
+
+    <title>분양대금조회 | 엘리프 | 모바일</title>
+</head>
+<body>
+    <!-- wrap -->
+    <div class="wrap">
+        <a href="#header" class="skipNav">주메뉴 바로가기</a>
+        <a href="#container" class="skipNav">본문바로가기</a>
+        <!-- header -->
+        <header id="header" class=""><!-- 마이 엘리프 : my_open / 메뉴 : gnb_open -->
+            <!-- gnb include -->
+            <%@ include file="../include/header.jsp" %>
+        </header>
+        <!-- // header -->
+        <main class="container" id="container">
+            <div class="inner">
+                <section class="visual mypage">
+                    <h2>마이 엘리프</h2>
+                </section>
+                <div class="contents_wrap">
+                    <!-- LNB -->
+                    <nav class="lnb small">
+                        <ul>
+                            <li><a href="/mobile/mypage/index">홈</a></li>
+                            <li><a href="/mobile/mypage/mycomplex">나의 분양 단지</a></li>
+                            <li><a href="/mobile/mypage/payment-guide"  class="on">분양대금 조회</a></li>
+                            <!-- <li><a href="/mobile/mypage/visit-reservation-01">사전점검 방문 예약</a></li> -->
+                            <li><a href="/mobile/mypage/movein-reservation-01" >입주 예약</a></li>
+                            <li><a href="/mobile/mypage/inquiry-apply">고객 문의</a></li>
+                            <li><a href="/mobile/mypage/notice">공지사항</a></li>
+                            <li><a href="https://cs.kyeryong.net/jsp/as/defc/co/defc_co_confirm.jsp" target="_blank">A/S 신청</a></li>
+                        </ul>
+                    </nav>
+                    <!-- //LNB-->
+                    <div class="tab_linker_wrap">
+                        <ul class="tab_linker">
+                            <li>
+                                <a href="/mobile/mypage/payment-guide">분양 가이드</a>
+                            </li>
+                            <li class="on">
+                                <a href="/mobile/mypage/payment-lookup">중도금 조회</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tab_content_wrap">
+                        <div class="tab_content">
+                            <section class="cont_section">
+                                <div class="menu_sel_wrap">
+                                    <!-- [D] 0915 : 변경 :option변경 -->
+                                    <select class="menu_sel" title="입금내역, 예상 입금액 선택">
+                                        <option value="0" selected>선택</option>
+                                        <option value="1">입금 내역</option>
+                                        <option value="2">예상 입금액</option>
+                                    </select>
+                                    <!-- //[D] 0915 : 변경 :option변경 -->
+                                </div>
+                                <div class="info_table">
+                                    <ul class="info_list">
+                                        <li class="info_item">
+                                            <div class="info_label">
+                                                <label for="apt" class="tit">사업장 명</label>
+                                            </div>
+                                            <div class="info_type">
+                                                <select id="apt" name="pjt_cd" class="wmd">
+                                                    <option value="">선택</option>
+                                                </select>
+                                            </div>
+                                        </li>
+                                        <li class="info_item">
+                                            <div class="info_label">
+                                                <label for="price" class="tit">금액 구분</label>
+                                            </div>
+                                            <div class="info_type">
+                                                <select id="price" name="pjt_price" class="wmd">
+                                                    <option value="">선택</option>
+                                                    <option value="분양 금액">분양 금액</option>
+                                                    <option value="PLUS 옵션 금액">PLUS 옵션 금액</option>
+                                                    <option value="발코니 확장 금액">발코니 확장 금액</option>
+                                                </select>
+                                            </div>
+                                        </li>
+                                        <li class="info_item">
+                                            <div class="info_label">
+                                                <label for="date" class="date">예상 입금 일자</label>
+                                            </div>
+                                            <div class="info_type">
+                                                <input type="text" class="date" id="date">
+                                            </div>
+                                        </li>
+                                        <li class="info_item">
+                                            <div class="info_label">
+                                                <label for="xptFg" class="tit">구분</label>
+                                            </div>
+                                            <div class="info_type">
+                                                <select id="xptFg">
+                                                    <option value="0">선택</option>
+                                                    <option value="1">예상 입금 차수</option>
+                                                    <option value="2">예상 입금액</option>
+                                                </select>
+                                            </div>
+                                        </li>
+                                        <li class="info_item">
+                                            <div class="info_label">
+                                                <label for="times" class="tit">임금 차수</label>
+                                            </div>
+                                            <div class="info_type">
+                                                <select id="times">
+                                                    <option value="0">선택</option>
+                                                </select>
+                                            </div>
+                                        </li>
+                                        <li class="info_item">
+                                            <div class="info_label">
+                                                <label for="xptDamt" class="tit">예상 입금액</label>
+                                            </div>
+                                            <div class="info_type">
+                                                <input type="text" id="xptDamt" value="0">
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="btn_area">
+                                    <a href="#" class="btn green">조회</a>
+                                </div>
+                            </section>
+                            <section class="cont_section la_mg">
+                                <ul class="acc_list">
+                                    <li class="acc_item">
+                                        <div class="acc_header">
+                                            <button type="button" class="acc_btn">
+                                                계약 내역
+                                                <i class="acc_ico"></i>
+                                            </button>
+                                        </div>
+                                        <div class="acc_body">
+                                            <div class="info_table">
+                                                <ul class="info_list">
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">사업장 명</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">세종시 C3-2B/L 도시형생활주택</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">동호수</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">102동 1415호</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">평형타입</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">18A</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">사업장 구분</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">일반</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">전용면적</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">18.0325m2</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">이름</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">더위버</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">전화번호</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">02-1111-1111</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">휴대전화번호</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">02-1111-1111</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">등기 주소</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">(301-758) 대전광역시 중구 오류동 삼성아파트(1~10동) 1208동 1601호 </span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">연락 주소</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">(302-859) 대전광역시 서구 탄방동 문정로48번길 48 계룡건설 시스템개발부</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">계약 일자</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">2012년 6월 21일</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">입주 일자</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">2015년 6월 21일</span>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div><!-- //acc_body -->
+                                    </li>
+                                    <li class="acc_item">
+                                        <div class="acc_header">
+                                            <button type="button" class="acc_btn">
+                                                입금 정보
+                                                <i class="acc_ico"></i>
+                                            </button>
+                                        </div>
+                                        <div class="acc_body">
+                                            <div class="info_table">
+                                                <ul class="info_list">
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">은행 명</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">우리은행</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">계좌 구분</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">일반</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">예금주</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">계룡건설산업(주)</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">계좌번호</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">1005-702-048494</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">분양 금액</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">87,000,000원</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">과오납 금액</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">0원</span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="info_item">
+                                                        <div class="info_label">
+                                                            <span class="tit">과오납 환불 금액</span>
+                                                        </div>
+                                                        <div class="info_type">
+                                                            <span class="desc_txt">0원</span>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <p class="comment">※ 잔금 약정일자는 임의 지정일로 추후 입주개시 일자 확정 시 선납할인 금액은 변경될 수 있습니다.</p> <!-- [D] 0914 : 컨텐츠 추가 -->
+                                        </div><!-- //acc_body -->
+                                    </li>
+                                    <li class="acc_item">
+                                        <div class="acc_header">
+                                            <button type="button" class="acc_btn">
+                                                예상 입금액
+                                                <i class="acc_ico"></i>
+                                            </button>
+                                        </div>
+                                        <div class="acc_body">
+                                            <div class="scroll_x_box">
+                                                <div class="table_wrap">
+                                                    <table class="table">
+                                                    <caption>차수, 약정 일자, 약정 금액, 구분, 입금 일자, 실 납부 금액, 일수, 연체료, 할인료, 납부금액을 선택 또는 입력하는 테이블입니다.</caption>
+                                                        <colgroup>
+                                                            <col style="width:110px">
+                                                            <col style="width:158px">
+                                                            <col style="width:130px">
+                                                            <col style="width:90px">
+                                                            <col style="width:150px">
+                                                            <col style="width:130px">
+                                                            <col style="width:86px">
+                                                            <col style="width:96px">
+                                                            <col style="width:120px">
+                                                            <col style="width:130px">
+                                                        </colgroup>
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col">차수</th>
+                                                                <th scope="col">약정 일자</th>
+                                                                <th scope="col">약정 금액</th>
+                                                                <th scope="col">입금 일자</th>
+                                                                <th scope="col">구분</th>
+                                                                <th scope="col">실 납부 금액</th>
+                                                                <th scope="col">일수</th>
+                                                                <th scope="col">연체료</th>
+                                                                <th scope="col">할인료</th>
+                                                                <th scope="col">납부 금액</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="tc">계약</td>
+                                                                <td class="tc">2012년 6월 21일</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                                <td class="tc">기입금</td>
+                                                                <td class="tc">2012년 6월 21일</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                                <td class="tc">0</td>
+                                                                <td class="tr">0원</td>
+                                                                <td class="tr">0원</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                             </tr>
+                                                             <tr>
+                                                                <td class="tc">중도금 1차</td>
+                                                                <td class="tc">2012년 6월 21일</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                                <td class="tc">기입금</td>
+                                                                <td class="tc">2012년 6월 21일</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                                <td class="tc">0</td>
+                                                                <td class="tr">0원</td>
+                                                                <td class="tr">0원</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                             </tr>
+                                                             <tr>
+                                                                <td class="tc">중도금 2차</td>
+                                                                <td class="tc">2012년 6월 21일</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                                <td class="tc">기입금</td>
+                                                                <td class="tc">2012년 6월 21일</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                                <td class="tc">0</td>
+                                                                <td class="tr">0원</td>
+                                                                <td class="tr">0원</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                             </tr>
+                                                             <tr>
+                                                                <td class="tc">중도금 3차</td>
+                                                                <td class="tc">2012년 6월 21일</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                                <td class="tc">기입금</td>
+                                                                <td class="tc">2012년 6월 21일</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                                <td class="tc">0</td>
+                                                                <td class="tr">0원</td>
+                                                                <td class="tr">0원</td>
+                                                                <td class="tr">8,700,000원</td>
+                                                             </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <p class="comment">※ 잔금 약정일자는 임의 지정일로 추후 입주개시 일자 확정 시 선납할인 금액은 변경될 수 있습니다.</p> <!-- [D] 0914 : 컨텐츠 추가 -->
+                                            <dl class="amount_list">
+                                                <div class="item">
+                                                    <dt class="item_tit">예상 통장 입금액</dt>
+                                                    <dd class="item_amount">0원</dd>
+                                                </div>
+                                                <div class="item">
+                                                    <dt class="item_tit">예상 납부 금액</dt>
+                                                    <dd class="item_amount">0원</dd>
+                                                </div>
+                                                <div class="item">
+                                                    <dt class="item_tit">예상 연체료</dt>
+                                                    <dd class="item_amount">0원</dd>
+                                                </div>
+                                                <div class="item">
+                                                    <dt class="item_tit">예상 할인료</dt>
+                                                    <dd class="item_amount">0원</dd>
+                                                </div>
+                                            </dl>
+                                        </div><!-- //acc_body -->
+                                    </li>
+                                </ul>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- //container -->
+        <!-- [blockUi] 로딩시 class에 on -->
+        <div id="blockUi"></div>
+        <%@ include file="../include/footer.jsp" %>
+    </div>
+    <!-- //wrap -->
+    <%@ include file="../include/javascript.jsp" %>
+    <script>
+        // elif.saleSearch();
+        /* [D] 0915 : 삭제 */
+        /*  var accItem = $('.acc_list > .acc_item');
+        accItem.on('click', function(e){
+            $(this).toggleClass('on');
+        }); */
+        /* //[D] 0915 : 삭제 */
+
+        function lnbMotion(){
+            var lnb = $('.lnb');
+            if(lnb){
+                var totalW = Array.prototype.reduce.call(lnb.find('li'), function(total, item){
+                    return total + $(item).width();
+                }, 0)
+                var maxX = totalW - lnb.outerWidth();
+                var onItem = lnb.find('li > a').filter('.on').closest('li');
+                var checkPosX = onItem.position().left;
+                var goX = 0;
+                if(lnb.outerWidth() <= checkPosX + onItem.width()){
+                    goX = Math.ceil((maxX < checkPosX)? maxX : checkPosX);
+                };
+                lnb.find('ul').scrollLeft(goX);
+            }//if
+
+        }
+        lnbMotion();
+    </script>
+</body>
+
+</html>

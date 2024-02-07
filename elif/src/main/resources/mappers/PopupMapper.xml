@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="popup">
+	
+	<select id="selectBoardCount" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(*) as COUNT
+	        FROM
+	            RV750_POPUP
+		    ]]>
+			<where>
+			    <if test="lang != '' and lang != null">
+					and LANG = '${lang}'
+			    </if>
+			    <if test="status != '' and status != null">
+					and STATUS = '${status}'
+			    </if>
+			    <if test="gubun_detect != '' and gubun_detect != null">
+					and ${gubun_detect} = 'Y'
+			    </if>
+			    
+			    <if test="sdate != null">
+			    	<![CDATA[
+					and DATE_FORMAT (UPDA_DTM, 120) >= '${sdate}'
+					]]>
+			    </if>
+			    <if test="edate != null">
+			    	<![CDATA[
+					and DATE_FORMAT (UPDA_DTM, 120)) <= '${edate}'
+					]]>
+			    </if>
+			    <if test="keyword != '' and keyword != null">
+					<choose>
+						<when test="target == 'all'">
+								and (TITLE like '%${keyword}%' OR desc_web like '%${keyword}%' OR desc_mobile like '%${keyword}%')
+						</when> 
+						<otherwise>
+						and ${target} like '%${keyword}%'
+						</otherwise>
+					</choose>
+			    </if>
+			</where>
+	</select>
+	
+	<select id="selectBoardList" resultType="com.krcon.elif.vo.Popup">
+	    <![CDATA[
+			SELECT
+					COUNT(*) OVER() AS TOTAL_COUNT,
+	                AA.*,
+					( SELECT CONCAT(PATH_NAME,STORED_FILE_NAME) FROM RV751_POPUP_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'gallery')  AS IMG_NAME,
+					( SELECT CONCAT(PATH_NAME,STORED_FILE_NAME) FROM RV751_POPUP_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'mobgallery')  AS MOBIMG_NAME,
+					(SELECT COUNT(IDX) FROM RV751_POPUP_FILE WHERE BOARD_IDX=AA.IDX AND DEL_GB='N') AS FILE_COUNT
+	            FROM(  
+			        SELECT
+						ROW_NUMBER() OVER (ORDER BY IDX DESC) RNUM,
+			            IDX,
+		]]>
+		<choose>
+			<when test="frontcol != '' and frontcol != null">
+			<![CDATA[
+						${frontcol}
+			]]>
+			</when> 
+			<otherwise>
+			<![CDATA[
+						LANG,
+						TYPE,
+						THEME,
+						GUBUN_WEB,
+						GUBUN_MOBILE,
+						TITLE,
+						DESC_WEB,
+						DESC_MOBILE,
+						URL_WEB,
+						URL_MOBILE,
+						URL_WEB_TARGET,
+						URL_MOBILE_TARGET,
+						POS_X,
+						POS_Y,
+						SIZE_W,
+						SIZE_H,
+						STATUS,
+						SORT,
+						CREA_ID,
+						CREA_NAME,
+			            START_DTM,
+			            END_DTM,
+			            CREA_DTM,
+			            UPDA_DTM
+			]]>
+			</otherwise>
+		</choose>
+		<![CDATA[
+			        FROM
+			            RV750_POPUP
+		    ]]>
+					<where>
+					    <if test="lang != '' and lang != null">
+							and LANG = '${lang}'
+					    </if>
+						<if test="gubun_detect != '' and gubun_detect != null">
+							and ${gubun_detect} = 'Y'
+						</if>
+					    <if test="status != '' and status != null">
+							and STATUS = '${status}'
+					    </if>
+					    <if test="type != '' and type != null">
+							and type = '${type}'
+					    </if>
+					    <if test="sdate != null">
+					    	<![CDATA[
+							and START_DTM < TO_DATE('${sdate}', 'YYYY-MM-DD HH24:MI:SS')
+							]]>
+					    </if>
+					    <if test="edate != null">
+					    	<![CDATA[
+							and END_DTM > TO_DATE('${edate}', 'YYYY-MM-DD HH24:MI:SS')
+							]]>
+					    </if>
+					    <if test="keyword != '' and keyword != null">
+							<choose>
+								<when test="target == 'all'">
+								and (TITLE like '%${keyword}%' OR desc_web like '%${keyword}%' OR desc_mobile like '%${keyword}%')
+								</when> 
+								<otherwise>
+								and ${target} like '%${keyword}%'
+								</otherwise>
+							</choose>
+					    </if>
+					</where>
+		<![CDATA[
+	            ) AA
+	    ]]>
+		<where>
+		<if test="end != '' and end != null">
+		<![CDATA[
+			AND RNUM BETWEEN #{start} AND #{end}
+		]]>
+		</if>
+		</where>
+		<choose>
+			<when test="orderby != '' and orderby != null">
+			<![CDATA[
+			ORDER BY ${orderby}
+			]]>
+			</when> 
+			<otherwise>
+			<![CDATA[
+			ORDER BY IDX DESC
+			]]>
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	<insert id="insertBoard" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV750_POPUP_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+	    <![CDATA[
+	        
+	        INSERT INTO RV750_POPUP
+	        (
+				idx,
+				LANG,
+				TYPE,
+				THEME,
+				GUBUN_WEB,
+				GUBUN_MOBILE,
+				TITLE,
+				DESC_WEB,
+				DESC_MOBILE,
+				URL_WEB,
+				URL_MOBILE,
+				URL_WEB_TARGET,
+				URL_MOBILE_TARGET,
+				POS_X,
+				POS_Y,
+				SIZE_W,
+				SIZE_H,
+				STATUS,
+				SORT,
+				CREA_ID,
+				CREA_NAME,
+				]]>
+				<if test="start_dtm != null">
+					START_DTM,
+				</if>
+				<![CDATA[
+				      
+				]]>
+				<if test="end_dtm != null">
+					END_DTM,
+				</if>
+				<![CDATA[
+	            CREA_DTM,
+	            UPDA_DTM
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{lang}, 
+				#{type},
+	            #{theme}, 
+	            #{gubun_web}, 
+	            #{gubun_mobile}, 
+	            #{title}, 
+	            #{desc_web}, 
+	            #{desc_mobile}, 
+	            #{url_web}, 
+	            #{url_mobile}, 
+	            #{url_web_target}, 
+	            #{url_mobile_target}, 
+	            #{pos_x}, 
+	            #{pos_y}, 
+				#{size_w},
+				#{size_h},
+	            #{status}, 
+	            1, 
+	            #{crea_id}, 
+	            #{crea_name},
+				]]>
+				<if test="start_dtm != null">
+					#{start_dtm},
+				</if>
+				<![CDATA[
+				 
+				]]>
+				<if test="end_dtm != null">
+					#{end_dtm},
+				</if>
+				<![CDATA[
+	            SYSDATE,
+				]]>
+				<choose>
+				<when test="upda_dtm != null">
+				<![CDATA[
+				    #{upda_dtm}
+				]]>
+				</when> 
+				<otherwise>
+				<![CDATA[
+					SYSDATE
+				]]>
+				</otherwise>
+				</choose>
+		<![CDATA[
+	        )
+	    ]]>
+	</insert>
+	<select id="selectBoardDetail" resultType="com.krcon.elif.vo.Popup">
+	    <![CDATA[
+	        SELECT
+	        	IDX,
+				LANG,
+				TYPE,
+				THEME,
+				GUBUN_WEB,
+				GUBUN_MOBILE,
+				TITLE,
+				DESC_WEB,
+				DESC_MOBILE,
+				URL_WEB,
+				URL_MOBILE,
+				URL_WEB_TARGET,
+				URL_MOBILE_TARGET,
+				POS_X,
+				POS_Y,
+				SIZE_W,
+				SIZE_H,
+				STATUS,
+				SORT,
+				CREA_ID,
+				CREA_NAME,
+	            UPDA_ID,
+	            UPDA_NAME,
+	            START_DTM,
+	            END_DTM,
+	            CREA_DTM,
+	            UPDA_DTM
+	        FROM
+	            RV750_POPUP
+	        WHERE
+	            IDX = #{idx}        
+	    ]]>
+	    <if test="status != '' and status != null">
+			and STATUS = '${status}'
+	    </if>
+	</select>
+	
+	<update id="updateBoard">
+	    <![CDATA[
+	        UPDATE RV750_POPUP 
+	        SET
+	            LANG = #{lang},
+	            theme = #{theme},
+	            GUBUN_WEB = #{gubun_web},
+	            GUBUN_MOBILE = #{gubun_mobile},
+	            TITLE = #{title},
+	            DESC_WEB = #{desc_web},
+	            DESC_MOBILE = #{desc_mobile},
+	            URL_WEB = #{url_web},
+	            URL_MOBILE = #{url_mobile},
+	            URL_WEB_TARGET = #{url_web_target},
+	            URL_MOBILE_TARGET = #{url_mobile_target},
+	            POS_X = #{pos_x},
+	            POS_Y = #{pos_y},
+	            SIZE_W = #{size_w},
+	            SIZE_H = #{size_h},
+	            STATUS = #{status},
+	    ]]>
+			    	<if test="start_dtm != null">
+			    		START_DTM = #{start_dtm},
+			    	</if>
+		<![CDATA[
+	    ]]>
+			    	<if test="end_dtm != null">
+			    		END_DTM = #{end_dtm},
+			    	</if>
+		<![CDATA[
+	            UPDA_ID = #{upda_id},
+	            UPDA_NAME = #{upda_name},
+			    UPDA_DTM = SYSDATE
+	        WHERE
+	            IDX = #{idx}    
+	    ]]>
+	</update>
+	<update id="deleteBoard">
+	    <![CDATA[
+	        DELETE FROM RV750_POPUP
+	        WHERE
+	            IDX = #{idx}
+	    ]]>
+	</update>
+	
+	<!-- 게시판 파일 관련 -->
+	<insert id="insertFile" useGeneratedKeys="true" keyProperty="idx">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			SELECT RV751_POPUP_FILE_IDX.NEXTVAL FROM DUAL
+		</selectKey>
+	    <![CDATA[
+	        INSERT INTO RV751_POPUP_FILE
+	        (
+				idx,
+	            BOARD_IDX,
+	            ORIGINAL_FILE_NAME,
+	            STORED_FILE_NAME,
+	            FILE_GUBUN,
+	            FILE_SORT,
+	            FILE_SIZE,
+	            PATH_NAME,
+	    ]]>
+				<if test="comments != '' and comments != null">
+					COMMENT,
+				</if>
+		<![CDATA[
+	            CREA_DTM
+	        )
+	        VALUES
+	        (
+				#{idx},
+	            #{board_idx},
+	            #{original_file_name},
+	            #{stored_file_name},
+	            #{file_gubun},
+	            #{file_sort},
+	            #{file_size},
+	            #{path_name},
+	    ]]>
+				<if test="comments != '' and comments != null">
+					COMMENTS = #{comments},
+				</if>
+		<![CDATA[
+	            SYSDATE
+	        )
+	    ]]>
+	</insert>
+	<select id="selectFileList" resultType="com.krcon.elif.vo.PopupFile">
+    <![CDATA[
+        SELECT
+            IDX,
+            ORIGINAL_FILE_NAME,
+            STORED_FILE_NAME,
+            FILE_GUBUN,
+            FILE_SORT,
+	        PATH_NAME,
+            ROUND(FILE_SIZE/1024,1) AS FILE_SIZE
+        FROM
+            RV751_POPUP_FILE
+
+		    ]]>
+		<where>
+            BOARD_IDX = #{board_idx}
+            AND DEL_GB = 'N'
+		    <if test="file_gubun != '' and file_gubun != null">
+		    AND FILE_GUBUN = #{file_gubun}
+		    </if>
+		</where>
+		<![CDATA[
+		ORDER by FILE_SORT ASC
+    	]]>
+	</select>
+
+	<update id="updateFile">
+	    <![CDATA[
+	        UPDATE RV751_POPUP_FILE SET
+	            ORIGINAL_FILE_NAME = #{original_file_name},
+	            STORED_FILE_NAME = #{stored_file_name},
+	            FILE_GUBUN = #{file_gubun},
+	            FILE_SORT = #{file_sort},
+	            FILE_SIZE = #{file_size},
+	            PATH_NAME = #{path_name}
+	        WHERE
+	            IDX = #{idx}   
+	    ]]>
+	</update>
+	<update id="deleteFile">
+	    <![CDATA[
+	        DELETE FROM RV751_POPUP_FILE
+	        WHERE
+	            IDX = #{FILE_IDX}  
+	    ]]>
+	</update>
+	 
+	<update id="deleteFileList">
+	    <![CDATA[
+	        DELETE FROM RV751_POPUP_FILE
+	        WHERE
+	            BOARD_IDX = #{board_idx}   
+	    ]]>
+	</update>
+</mapper>

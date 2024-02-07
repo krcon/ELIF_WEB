@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="project">
+	
+	<!--***************************************************************
+	* 설명		: 프로젝트 갯수
+	****************************************************************-->
+	<select id="selectProjectCount" resultType="int">
+	    <![CDATA[
+	        SELECT
+	            COUNT(*) as COUNT
+	        FROM
+	            HS100_SLLT_PJT
+		    ]]>
+	</select>
+	<!--***************************************************************
+	* 설명		: 프로젝트 리스트
+	****************************************************************-->
+	<select id="selectProjectList" resultType="com.krcon.elif.vo.Project">
+	    <![CDATA[
+		SELECT
+			AA.*
+		FROM(  
+	        SELECT
+				co_cd,
+				pjt_cd,
+				pjt_mrkg_nm,
+				fst_reg_dtm
+	        FROM
+		]]>
+				<choose>
+				<when test="code_type=='krice'">
+					HS100_SLLT_PJT@${db.name.db3}
+				</when>
+				<otherwise>
+					HS100_SLLT_PJT
+				</otherwise>
+				</choose>
+		<![CDATA[
+			) AA
+		order by fst_reg_dtm desc,pjt_mrkg_nm asc
+		    ]]>
+	</select>
+	<select id="selectProjectDetail" resultType="com.krcon.elif.vo.Project">
+	    <![CDATA[
+		SELECT
+			AA.*
+		FROM(  
+	        SELECT
+				co_cd,
+				pjt_cd,
+				pjt_mrkg_nm,
+				bz_fg_cd,
+				sllt_knd_cd,
+				blno,
+				hhldno,
+				ugrn_stycnt,
+				ogrn_stycnt,
+				enfco_intg_cust_cd,
+				mng_dept_nm,
+				spnc_slplc_nm,
+				pjt_omgr_pnm,
+				sllt_chrpsn_pnm,
+				lotr_plc_nm,
+				sit_caddr,
+				mofc_caddr,
+				mhs_caddr,
+				gofc_caddr,
+				cont_cont_dt,
+				bz_aprv_dt,
+				sllt_cont_str_dt,
+				sllt_pann_dt,
+				cnsv_rgs_dt,
+				land_rgs_dt,
+				lotr_dt,
+				bf_chk_str_dt,
+				bf_chk_end_dt,
+				mibl_str_dt,
+				mibl_end_dt,
+				tot_sllt_amt,
+				cont_amt,
+				erth_sqms,
+				tad,
+				pjt_parklot_sqms,
+				capart,
+				coll_bz_rt,
+				max_engg_dgr,
+				engg_amt_detr_unt_cd,
+				odufe_detr_unt_cd,
+				dcfe_detr_unt_cd,
+				mhs_zpcd,
+				mhs_ftn_addr,
+				mhs_dtl_addr,
+				pjt_zpcd,
+				pjt_ftn_addr,
+				pjt_dtl_addr,
+				ccnst_afth_zpcd,
+				ccnst_afth_ftn_addr,
+				ccnst_afth_dtl_addr,
+				hld_hhld_agg_yn,
+				rntl_dispsl_agg_yn,
+				ccnst_stl_yn,
+				vrtl_bacct_auto_dstr_yn,
+				unccnst_bal_odufe_fg_cd,
+				mns_optn_bss_cd,
+				engg_amt_adup_bss_cd,
+				pjt_mmo,
+				pjt_rmks,
+				mhs_cmpd,
+				mhs_annc_matt,
+				sllt_pjt_atfl_id,
+				fst_reg_dtm,
+				regpsn_id,
+				fnl_upd_dtm,
+				updpsn_id,
+				rntl_dmny_max_engg_dgr,
+				cdoc_opt_yn,
+				stl_dt,
+				sllt_img_atfl_id,
+				engg_amt_hunodetr_unt_cd,
+				mibl_dual_res_yn,
+				mibl_sms_from_no,
+				mibl_res_end_dt,
+				bfchk_sms_from_no
+	        FROM
+			]]>
+					<choose>
+					<when test="code_type=='krice'">
+						HS100_SLLT_PJT@${db.name.db3}
+					</when>
+					<otherwise>
+						HS100_SLLT_PJT
+					</otherwise>
+					</choose>
+			<![CDATA[
+			
+			) AA
+		    ]]>
+			<where>
+				and co_cd=${db.cocd}
+				and pjt_cd=#{pjt_cd}
+			</where>
+	</select>
+	<!--***************************************************************
+	* 설명		: 프로젝트코드 조회
+	****************************************************************-->
+	<select id="selectMyElifProject" resultType="hashmap">
+	    <![CDATA[
+		select	a.pjt_cd
+			,	c.pjt_nm
+		from	hs100_sllt_pjt   a
+			,	RV100_PJT@${db.name.db1} c
+		where	a.co_cd		= ${db.cocd}
+		and		a.sllt_knd_cd between 'HS01501' and 'HS01509' and a.mibl_end_dt > '20091231'
+		and     c.use_yn = 'Y'
+		and		a.co_cd		= c.co_cd
+		and		a.pjt_cd	= c.pjt_cd
+		order by a.pjt_mrkg_nm
+		]]>
+	</select>
+	<!--***************************************************************
+	* 설명		: 프로젝트별 동 조회
+	****************************************************************-->
+	<select id="selectMyElifProjectDong" resultType="hashmap">
+	    <![CDATA[
+		select	bl_cd
+			,	bl_nm
+		from	hs130_pjt_bl
+		where	co_cd	=	${db.cocd}
+		and		pjt_cd	=	#{pjt_cd}
+        order by bl_nm asc
+		]]>
+	</select>
+	<!--***************************************************************
+	* 설명		: 프로젝트별 호수 조회
+	****************************************************************-->
+	<select id="selectMyElifProjectHosu" resultType="hashmap">
+	    <![CDATA[
+		select	rmno_cd
+			,	rmno_nm
+		from	hs160_bl_rmno a
+		where	a.co_cd		=	${db.cocd}
+		and		a.pjt_cd	=	#{pjt_cd}
+		and		a.bl_cd		=	#{bl_cd}
+		order by rmno_cd asc
+		]]>
+	</select>
+	<!--***************************************************************
+	* 설명		: 분양계약 일치 여부확인
+	****************************************************************-->
+	<select id="selectMyElifProjectCount" resultType="int">
+	    <![CDATA[
+		select	nvl(count(*),0) as cnt
+		from	hs800_sllt_cust	a
+			,	(
+				select	sllt_cust_cd
+				from	hs220_sllt_cont
+				where	pjt_cd	=	#{pjt_cd}
+				and		bl_cd	=	#{bl_cd}
+				and		rmno_cd	=	#{rmno_cd}
+				union all
+				select	sllt_cust_cd
+				from	hs230_coll_anm
+				where	pjt_cd	=	#{pjt_cd}
+				and		bl_cd	=	#{bl_cd}
+				and		rmno_cd	=	#{rmno_cd}
+				)	b
+		where	a.sllt_cust_cd	=	b.sllt_cust_cd
+		and		a.rrno_fdgt		=	#{yymmdd}
+		and		a.cust_pnm		=	#{user_nm}
+		]]>
+	</select>
+
+	<!--***************************************************************
+	* 설명		: 계약정보 등록여부 확인
+	****************************************************************-->
+	<select id="selectMyElifProjectInfoCount" resultType="int">
+	    <![CDATA[
+		select	count(*)	as	cnt
+		from	rv220_cust_sllt_info@${db.name.db1}
+		where	user_id	=	#{user_id}
+		and		pjt_cd	=	#{pjt_cd}
+		and		bl_cd	=	#{bl_cd}
+		and		rmno_cd	=	#{rmno_cd}
+		]]>
+	</select>
+	<!--***************************************************************
+	* 설명		: 계약정보조회
+	****************************************************************-->
+	<select id="selectMyElifProjectInfoList" resultType="hashmap">
+	<![CDATA[
+	select	tc.pjt_cd
+		,tc.pjt_nm
+		,tc.code_type
+		,tc.housing
+		,(select CODE_NAME from RV900_COM_CD@${db.name.db1} where CODE_ID = tc.housing) as housing_name
+		,tc.region
+		,(select CODE_NAME from RV900_COM_CD@${db.name.db1} where CODE_ID = tc.region) as region_name
+		,tc.sllt_info_loc as location
+		,tc.households
+		,tc.sllt_info_addr_tel as tel
+		,tc.area
+		,tc.const_scope
+		,tc.progress
+		,(select CODE_NAME from RV900_COM_CD@${db.name.db1} where CODE_ID = tc.progress) as progress_name
+		,tc.reservation_comment
+		,tc.visit_comment
+		,tc.sales_thumb_path
+		,tc.sales_thumb_name
+		,tc.sales_thumb_origin
+		,tc.const_thumb_path
+		,tc.const_thumb_name
+		,tc.const_thumb_origin
+		,tc.mv_thumb_path
+		,tc.mv_thumb_name
+		,tc.mv_thumb_origin
+		,tc.mv_start_date
+		,tc.mv_end_date
+		,tc.mv_pre_start_date
+		,tc.mv_pre_end_date
+		,a.bl_cd
+		,g.bl_nm
+		,a.rmno_cd
+		,d.rmno_nm
+        ,decode(d.sllt_fg_cd,'HS00103',1,0) as cont_seq
+	from rv220_cust_sllt_info@${db.name.db1} a
+		, RV100_PJT@${db.name.db1} tc  
+		, RV710_CUST_INFO@${db.name.db1} cust  
+		, hs160_bl_rmno d                  
+		, HS220_SLLT_CONT e           
+		, hs800_sllt_cust f          
+		, HS130_PJT_BL g
+	where a.co_cd = tc.co_cd
+		and a.pjt_cd = tc.pjt_cd
+		and a.co_Cd = cust.co_Cd
+		and a.user_id = cust.user_id
+		and a.co_cd = d.co_cd
+		and a.pjt_cd = d.pjt_cd
+		and a.bl_cd = d.bl_cd
+		and a.rmno_cd = d.rmno_cd
+		and	a.co_cd	= ${db.cocd}
+		and	a.user_id = #{user_id}
+		and a.co_cd = e.co_cd 
+		and a.pjt_cd = e.pjt_cd 
+		and a.bl_cd = e.bl_cd
+		and a.rmno_cd = e.rmno_cd
+		and e.co_cd = f.co_cd
+		and e.sllt_cust_cd = f.sllt_cust_cd
+		and cust.co_cd = f.co_cd
+		and cust.user_nm = f.cust_pnm
+		and cust.yymmdd = f.rrno_fdgt
+		and a.co_cd = g.co_cd
+		and a.pjt_cd = g.pjt_cd
+		and a.bl_cd = g.bl_cd
+	]]>
+	</select>
+	<!--***************************************************************
+	* 설명		: 계약정보 저장
+	****************************************************************-->
+	<insert id="insertMyElifProjectInfo">
+	    <![CDATA[
+		insert	into	rv220_cust_sllt_info@${db.name.db1}	(
+													co_cd
+												,	user_id
+												,	pjt_cd
+												,	bl_cd
+												,	rmno_cd
+												,	fst_reg_dtm
+												,	fnl_upd_dtm
+												)
+												values
+												(
+													${db.cocd}
+												,	#{user_id}
+												,	#{pjt_cd}
+												,	#{bl_cd}
+												,	#{rmno_cd}
+												,	sysdate
+												,	sysdate
+												)
+		]]>
+	</insert>
+	<!--***************************************************************
+	* 설명		: 계약정보 삭제
+	****************************************************************-->
+	<update id="deleteMyElifProjectInfo">
+	    <![CDATA[
+		delete
+		from	rv220_cust_sllt_info@${db.name.db1}
+		where	user_id	=	#{user_id}
+		and		pjt_cd	=	#{pjt_cd}
+		and		bl_cd	=	#{bl_cd}
+		and		rmno_cd	=	#{rmno_cd}
+		]]>
+	</update>
+
+
+
+
+	<!--***************************************************************
+	* 설명		: 분양대금 조회
+	****************************************************************-->
+	<select id="selectMyElifPresale" resultType="map">
+	    <![CDATA[
+		select	b.pjt_cd
+			,	b.pjt_mrkg_nm
+			,	a.bl_cd
+			,	c.bl_nm
+			,	a.rmno_cd
+			,	d.rmno_nm
+			,   decode(d.sllt_fg_cd,'HS00103',1,0) as cont_seq
+			,   h.pjt_nm
+		from	rv220_cust_sllt_info@${db.name.db1} a
+			,	HS100_SLLT_PJT b
+			,	hs130_pjt_bl c
+			,	hs160_bl_rmno d
+			,	rv100_pjt@${db.name.db1} h
+		where	a.co_cd		= b.co_cd
+		and		a.pjt_cd	= b.pjt_cd
+		and		a.co_cd		= h.co_cd
+		and		a.pjt_cd	= h.pjt_cd
+		and		a.co_cd		= c.co_cd
+		and		a.pjt_cd	= c.pjt_cd
+		and		a.bl_cd		= c.bl_cd
+		and		a.co_cd		= d.co_cd
+		and		a.pjt_cd	= d.pjt_cd
+		and		a.bl_cd		= d.bl_cd
+		and		a.rmno_cd	= d.rmno_cd
+		and		a.co_cd		= ${db.cocd}
+		and		a.user_id	= #{user_id}
+		]]>
+	</select>
+</mapper>
