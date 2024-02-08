@@ -57,6 +57,8 @@
                             <!-- <li><a href="../mypage/movein-reservation-01">입주 예약</a></li> -->
                             <li><a href="../mypage/inquiry-apply" class="on">고객 문의</a></li>
                             <li><a href="../mypage/notice">공지사항</a></li>
+                            <li><a href="../mypage/elifNews">엘리프 뉴스</a></li>
+                            <li><a href="../mypage/FAQ-view">FAQ</a></li>
                             <li><a href="https://cs.kyeryong.net/jsp/as/defc/co/defc_co_confirm.jsp" target="_blank">A/S 신청</a></li>
                         </ul>
                     </nav>

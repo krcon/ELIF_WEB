@@ -37,6 +37,7 @@ public class Board{
 	private String crea_name;
 	private String pjt_cd;
 	private String req_type;
+	private String board_type;
 	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date start_dtm;
 	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

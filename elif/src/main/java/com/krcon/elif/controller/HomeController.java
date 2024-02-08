@@ -4141,4 +4141,475 @@ public class HomeController {
 		}
 		return retMap;
 	}
+	
+	/** 
+	 * @param boardVO
+	 * @param request
+	 * @return ModelAndView
+	 * @throws Exception
+	 */
+	@RequestMapping(value = { "/mypage/elifNews", mb_mp + "/mypage/elifNews" })
+	public ModelAndView mypage_elifNews(Board boardVO, CommandMap commandMap, HttpServletRequest request) throws Exception {
+		ModelAndView mv = new ModelAndView();
+		if (request.getRequestURI().indexOf(mb_check) > -1) {
+			viewname = mb_path;
+			rpath = mb_mp;
+		} else {
+			viewname = web_path;
+			rpath = "";
+		}
+		mv.addObject("rpath", rpath);
+		mv.setViewName(viewname + "/mypage/elifNews");
+		String pjtCdInfo = "";
+		// if (!CommonUtils.logincheck(request, "memberSession")) {
+		// 	mv.setViewName("redirect:" + rpath + "/member/login?returl="
+		// 			+ URLEncoder.encode(request.getRequestURI(), "UTF-8"));
+		// 	return mv;
+		// }
+		if (request.getRequestURI().indexOf(mb_check) < 0) {
+			HttpSession session = request.getSession();
+			if(!CommonUtils.isEmpty(	session.getAttribute("memberSession"))) {
+			Member detail = (Member) session.getAttribute("memberSession");
+			
+				commandMap.put("user_id",detail.getUser_id());
+				List<Map<String,Object>> list = projectService.selectMyElifProjectInfoList(commandMap.getMap());
+				
+				for(int i=0, size=list.size(); i<size; i++){
+					if(!CommonUtils.isEmpty(list.get(i).get("PJT_CD"))) {
+						pjtCdInfo = list.get(i).get("PJT_CD").toString();
+					}
+				}
+			}
+			
+			
+			
+			boardVO.setPid(9);
+			boardVO.setStatus("Y"); 
+			boardVO.setOrderby("mainstatus desc, idx desc");
+			PaginationInfo paginationInfo = null;
+			
+			if(!CommonUtils.isEmpty(pjtCdInfo)) {
+				boardVO.setPjt_cd(pjtCdInfo);
+				boardVO.setReq_type("U"); // 관리자화면과 사용자 화면 구분
+			}else{
+				boardVO.setPjt_cd("");
+				boardVO.setReq_type(""); // 관리자화면과 사용자 화면 구분
+			}
+			paginationInfo = new PaginationInfo(); 
+			paginationInfo.setCurrentPageNo(boardVO.getCurrentPageNo());
+			paginationInfo.setRecordCountPerPage(boardVO.getRecordCountPerPage());
+			paginationInfo.setPageSize(boardVO.getPageSize());
+			int start = paginationInfo.getFirstRecordIndex();
+			int end = paginationInfo.getRecordCountPerPage();
+
+			int total = boardService.selectBoardCount(boardVO);
+			if (paginationInfo != null) {
+				paginationInfo.setTotalRecordCount(total);
+			}
+			boardVO.setStart(start);
+			boardVO.setEnd(paginationInfo.getLastRecordIndex());
+
+			List<Board> list = boardService.selectBoardList(boardVO);
+
+			mv.addObject("paginationInfo", paginationInfo);
+			mv.addObject("list", list);
+
+			mv.addObject("currentPageNo", boardVO.getCurrentPageNo());
+			if (boardVO.getTarget() != null) {
+				mv.addObject("target", boardVO.getTarget());
+			}
+			if (boardVO.getKeyword() != null) {
+				mv.addObject("keyword", boardVO.getKeyword());
+			}
+			if (boardVO.getPjt_cd() != null) {
+				mv.addObject("pjt_cd", boardVO.getPjt_cd());
+			}
+			if (boardVO.getSdate() != null) {
+				mv.addObject("sdate", boardVO.getSdate());
+			}
+
+			if (boardVO.getEdate() != null) {
+				mv.addObject("edate", boardVO.getEdate());
+			}
+
+			mv.addObject("pid", boardVO.getPid());
+
+			if (boardVO.getTypes() != null) {
+				mv.addObject("types", boardVO.getTypes());
+			}
+		}
+		return mv;
+	}
+
+	
+	/** 
+	 * @param boardVO
+	 * @param request
+	 * @return ModelAndView
+	 * @throws Exception
+	 */
+	// 모바일 에서만 사용
+	@RequestMapping(value = {"/mypage/elifNews_list", mb_mp + "/mypage/elifNews_list"})
+	public ModelAndView mobile_mypage_elifNews_list(Board boardVO, HttpServletRequest request) throws Exception {
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName("/mobile/mypage/elifNews_list");
+		// if (!CommonUtils.logincheck(request, "memberSession")) {
+		// 	mv.setViewName("redirect:/member/login?returl=" + URLEncoder.encode(request.getRequestURI(), "UTF-8"));
+		// 	return mv;
+		// }
+
+		boardVO.setPid(9);
+		boardVO.setStatus("Y");
+		boardVO.setOrderby("mainstatus desc, idx desc");
+		PaginationInfo paginationInfo = null;
+
+		paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(boardVO.getCurrentPageNo());
+		paginationInfo.setRecordCountPerPage(boardVO.getRecordCountPerPage());
+		paginationInfo.setPageSize(boardVO.getPageSize());
+		int start = paginationInfo.getFirstRecordIndex();
+		int end = paginationInfo.getRecordCountPerPage();
+
+		int total = boardService.selectBoardCount(boardVO);
+		if (paginationInfo != null) {
+			paginationInfo.setTotalRecordCount(total);
+		}
+		boardVO.setStart(start);
+		boardVO.setEnd(paginationInfo.getLastRecordIndex());
+
+		List<Board> list = boardService.selectBoardList(boardVO);
+
+		mv.addObject("paginationInfo", paginationInfo);
+		mv.addObject("list", list);
+
+		if (CommonUtils.isEmpty(boardVO.getCurrentPageNo())) {
+			boardVO.setCurrentPageNo(1);
+		}
+		mv.addObject("currentPageNo", boardVO.getCurrentPageNo());
+		if (boardVO.getTarget() != null) {
+			mv.addObject("target", boardVO.getTarget());
+		}
+		if (boardVO.getKeyword() != null) {
+			mv.addObject("keyword", boardVO.getKeyword());
+		}
+		if (boardVO.getSdate() != null) {
+			mv.addObject("sdate", boardVO.getSdate());
+		}
+
+		if (boardVO.getEdate() != null) {
+			mv.addObject("edate", boardVO.getEdate());
+		}
+
+		mv.addObject("pid", boardVO.getPid());
+
+		if (boardVO.getTypes() != null) {
+			mv.addObject("types", boardVO.getTypes());
+		}
+		return mv;
+	}
+
+	
+	/** 
+	 * @param boardVO
+	 * @param request
+	 * @return ModelAndView
+	 * @throws Exception
+	 */
+	@RequestMapping(value = { "/mypage/elifNews-view", mb_mp + "/mypage/elifNews-view" })
+	public ModelAndView mypage_elifNews_view(Board boardVO, HttpServletRequest request) throws Exception {
+		ModelAndView mv = new ModelAndView();
+		if (request.getRequestURI().indexOf(mb_check) > -1) {
+			viewname = mb_path;
+			rpath = mb_mp;
+		} else {
+			viewname = web_path;
+			rpath = "";
+		}
+		mv.addObject("rpath", rpath);
+		mv.setViewName(viewname + "/mypage/elifNews-view");
+		// if (!CommonUtils.logincheck(request, "memberSession")) {
+		// 	mv.setViewName("redirect:" + rpath + "/member/login?returl="
+		// 			+ URLEncoder.encode(request.getRequestURI(), "UTF-8"));
+		// 	return mv;
+		// }
+
+		boardVO.setPid(9);
+		boardVO.setStatus("Y");
+
+		Board detail = boardService.selectBoardDetail(boardVO);
+		mv.addObject("map", detail);
+		DateFormat sdFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		boardVO.setPrevNextDate(sdFormat.format(detail.getStart_dtm()).toString());
+
+		BoardFile boardFileVO = new BoardFile();
+		boardFileVO.setBoard_idx(detail.getIdx());
+		boardFileVO.setFile_gubun("file");
+
+		List<BoardFile> fileList = boardService.selectFileList(boardFileVO);
+		mv.addObject("files", fileList);
+
+		Board prevVO = boardService.selectBoardDetailPrev(boardVO);
+		mv.addObject("prevMap", prevVO);
+
+		Board nextVO = boardService.selectBoardDetailNext(boardVO);
+		mv.addObject("nextMap", nextVO);
+
+		mv.addObject("currentPageNo", boardVO.getCurrentPageNo());
+		if (boardVO.getTarget() != null) {
+			mv.addObject("target", boardVO.getTarget());
+		}
+		if (boardVO.getKeyword() != null) {
+			mv.addObject("keyword", boardVO.getKeyword());
+		}
+		if (boardVO.getSdate() != null) {
+			mv.addObject("sdate", boardVO.getSdate());
+		}
+
+		if (boardVO.getEdate() != null) {
+			mv.addObject("edate", boardVO.getEdate());
+		}
+
+		mv.addObject("pid", boardVO.getPid());
+
+		if (boardVO.getTypes() != null) {
+			mv.addObject("types", boardVO.getTypes());
+		}
+		return mv;
+	}
+
+	
+	/** 
+	 * @param boardVO
+	 * @param request
+	 * @return ModelAndView
+	 * @throws Exception
+	 */
+	@RequestMapping(value = { "/mypage/FAQ", mb_mp + "/mypage/FAQ" })
+	public ModelAndView mypage_FAQ(Board boardVO, CommandMap commandMap, HttpServletRequest request) throws Exception {
+		ModelAndView mv = new ModelAndView();
+		if (request.getRequestURI().indexOf(mb_check) > -1) {
+			viewname = mb_path;
+			rpath = mb_mp;
+		} else {
+			viewname = web_path;
+			rpath = "";
+		}
+		mv.addObject("rpath", rpath);
+		mv.setViewName(viewname + "/mypage/FAQ");
+		String pjtCdInfo = "";
+		// if (!CommonUtils.logincheck(request, "memberSession")) {
+		// 	mv.setViewName("redirect:" + rpath + "/member/login?returl="
+		// 			+ URLEncoder.encode(request.getRequestURI(), "UTF-8"));
+		// 	return mv;
+		// }
+		if (request.getRequestURI().indexOf(mb_check) < 0) {
+			HttpSession session = request.getSession();
+			if(!CommonUtils.isEmpty(	session.getAttribute("memberSession"))) {
+			Member detail = (Member) session.getAttribute("memberSession");
+			
+				commandMap.put("user_id",detail.getUser_id());
+				List<Map<String,Object>> list = projectService.selectMyElifProjectInfoList(commandMap.getMap());
+				
+				for(int i=0, size=list.size(); i<size; i++){
+					if(!CommonUtils.isEmpty(list.get(i).get("PJT_CD"))) {
+						pjtCdInfo = list.get(i).get("PJT_CD").toString();
+					}
+				}
+			}
+			
+			
+			
+			boardVO.setPid(10);
+			boardVO.setStatus("Y"); 
+			boardVO.setOrderby("mainstatus desc, idx desc");
+			PaginationInfo paginationInfo = null;
+			
+			if(!CommonUtils.isEmpty(pjtCdInfo)) {
+				boardVO.setPjt_cd(pjtCdInfo);
+				boardVO.setReq_type("U"); // 관리자화면과 사용자 화면 구분
+			}else{
+				boardVO.setPjt_cd("");
+				boardVO.setReq_type(""); // 관리자화면과 사용자 화면 구분
+			}
+			paginationInfo = new PaginationInfo(); 
+			paginationInfo.setCurrentPageNo(boardVO.getCurrentPageNo());
+			paginationInfo.setRecordCountPerPage(boardVO.getRecordCountPerPage());
+			paginationInfo.setPageSize(boardVO.getPageSize());
+			int start = paginationInfo.getFirstRecordIndex();
+			int end = paginationInfo.getRecordCountPerPage();
+
+			int total = boardService.selectBoardCount(boardVO);
+			if (paginationInfo != null) {
+				paginationInfo.setTotalRecordCount(total);
+			}
+			boardVO.setStart(start);
+			boardVO.setEnd(paginationInfo.getLastRecordIndex());
+
+			List<Board> list = boardService.selectBoardList(boardVO);
+
+			mv.addObject("paginationInfo", paginationInfo);
+			mv.addObject("list", list);
+
+			mv.addObject("currentPageNo", boardVO.getCurrentPageNo());
+			if (boardVO.getTarget() != null) {
+				mv.addObject("target", boardVO.getTarget());
+			}
+			if (boardVO.getKeyword() != null) {
+				mv.addObject("keyword", boardVO.getKeyword());
+			}
+			if (boardVO.getPjt_cd() != null) {
+				mv.addObject("pjt_cd", boardVO.getPjt_cd());
+			}
+			if (boardVO.getSdate() != null) {
+				mv.addObject("sdate", boardVO.getSdate());
+			}
+
+			if (boardVO.getEdate() != null) {
+				mv.addObject("edate", boardVO.getEdate());
+			}
+
+			mv.addObject("pid", boardVO.getPid());
+
+			if (boardVO.getTypes() != null) {
+				mv.addObject("types", boardVO.getTypes());
+			}
+		}
+		return mv;
+	}
+
+	
+	/** 
+	 * @param boardVO
+	 * @param request
+	 * @return ModelAndView
+	 * @throws Exception
+	 */
+	// 모바일 에서만 사용
+	@RequestMapping(value = {"/mypage/FAQ_list", mb_mp + "/mypage/FAQ_list"})
+	public ModelAndView mobile_mypage_FAQ_list(Board boardVO, HttpServletRequest request) throws Exception {
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName("/mobile/mypage/FAQ_list");
+		// if (!CommonUtils.logincheck(request, "memberSession")) {
+		// 	mv.setViewName("redirect:/member/login?returl=" + URLEncoder.encode(request.getRequestURI(), "UTF-8"));
+		// 	return mv;
+		// }
+
+		boardVO.setPid(10);
+		boardVO.setStatus("Y");
+		boardVO.setOrderby("mainstatus desc, idx desc");
+		PaginationInfo paginationInfo = null;
+
+		paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(boardVO.getCurrentPageNo());
+		paginationInfo.setRecordCountPerPage(boardVO.getRecordCountPerPage());
+		paginationInfo.setPageSize(boardVO.getPageSize());
+		int start = paginationInfo.getFirstRecordIndex();
+		int end = paginationInfo.getRecordCountPerPage();
+
+		int total = boardService.selectBoardCount(boardVO);
+		if (paginationInfo != null) {
+			paginationInfo.setTotalRecordCount(total);
+		}
+		boardVO.setStart(start);
+		boardVO.setEnd(paginationInfo.getLastRecordIndex());
+
+		List<Board> list = boardService.selectBoardList(boardVO);
+
+		mv.addObject("paginationInfo", paginationInfo);
+		mv.addObject("list", list);
+
+		if (CommonUtils.isEmpty(boardVO.getCurrentPageNo())) {
+			boardVO.setCurrentPageNo(1);
+		}
+		mv.addObject("currentPageNo", boardVO.getCurrentPageNo());
+		if (boardVO.getTarget() != null) {
+			mv.addObject("target", boardVO.getTarget());
+		}
+		if (boardVO.getKeyword() != null) {
+			mv.addObject("keyword", boardVO.getKeyword());
+		}
+		if (boardVO.getSdate() != null) {
+			mv.addObject("sdate", boardVO.getSdate());
+		}
+
+		if (boardVO.getEdate() != null) {
+			mv.addObject("edate", boardVO.getEdate());
+		}
+
+		mv.addObject("pid", boardVO.getPid());
+
+		if (boardVO.getTypes() != null) {
+			mv.addObject("types", boardVO.getTypes());
+		}
+		return mv;
+	}
+
+	
+	/** 
+	 * @param boardVO
+	 * @param request
+	 * @return ModelAndView
+	 * @throws Exception
+	 */
+	@RequestMapping(value = { "/mypage/FAQ-view", mb_mp + "/mypage/FAQ-view" })
+	public ModelAndView mypage_FAQ_view(Board boardVO, HttpServletRequest request) throws Exception {
+		ModelAndView mv = new ModelAndView();
+		if (request.getRequestURI().indexOf(mb_check) > -1) {
+			viewname = mb_path;
+			rpath = mb_mp;
+		} else {
+			viewname = web_path;
+			rpath = "";
+		}
+		mv.addObject("rpath", rpath);
+		mv.setViewName(viewname + "/mypage/FAQ-view");
+		// if (!CommonUtils.logincheck(request, "memberSession")) {
+		// 	mv.setViewName("redirect:" + rpath + "/member/login?returl="
+		// 			+ URLEncoder.encode(request.getRequestURI(), "UTF-8"));
+		// 	return mv;
+		// }
+
+		boardVO.setPid(10);
+		boardVO.setStatus("Y");
+		boardVO.setBoard_type("FAQ");
+		Board detail = boardService.selectBoardDetail(boardVO);
+		mv.addObject("map", detail);
+		//DateFormat sdFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		//boardVO.setPrevNextDate(sdFormat.format(detail.getStart_dtm()).toString());
+
+		BoardFile boardFileVO = new BoardFile();
+		//boardFileVO.setBoard_idx(detail.getIdx());
+		boardFileVO.setFile_gubun("file");
+
+		List<BoardFile> fileList = boardService.selectFileList(boardFileVO);
+		mv.addObject("files", fileList);
+
+		//Board prevVO = boardService.selectBoardDetailPrev(boardVO);
+		//mv.addObject("prevMap", prevVO);
+
+		//Board nextVO = boardService.selectBoardDetailNext(boardVO);
+		//mv.addObject("nextMap", nextVO);
+
+		mv.addObject("currentPageNo", boardVO.getCurrentPageNo());
+		if (boardVO.getTarget() != null) {
+			mv.addObject("target", boardVO.getTarget());
+		}
+		if (boardVO.getKeyword() != null) {
+			mv.addObject("keyword", boardVO.getKeyword());
+		}
+		if (boardVO.getSdate() != null) {
+			mv.addObject("sdate", boardVO.getSdate());
+		}
+
+		if (boardVO.getEdate() != null) {
+			mv.addObject("edate", boardVO.getEdate());
+		}
+
+		mv.addObject("pid", boardVO.getPid());
+
+		if (boardVO.getTypes() != null) {
+			mv.addObject("types", boardVO.getTypes());
+		}
+		return mv;
+	}
 }

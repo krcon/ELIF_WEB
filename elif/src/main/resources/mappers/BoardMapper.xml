@@ -545,7 +545,19 @@
 	<select id="selectBoardDetail" resultType="com.krcon.elif.vo.Board">
 		<![CDATA[
 			SELECT
-				IDX,
+			]]>
+			<choose>
+		<when test="board_type != '' and board_type != null">
+			MAX(IDX) over(partition by idx) as IDX, 
+		</when>
+		<otherwise>
+			IDX,
+		</otherwise>
+		</choose>
+		
+		<![CDATA[
+			
+				
 				PARENT_IDX,
 				( SELECT CONCAT(PATH_NAME,STORED_FILE_NAME) FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'thumb')  AS IMG_NAME,
 				( SELECT IDX FROM RV724_BOARD_FILE WHERE BOARD_IDX = AA.IDX AND DEL_GB = 'N' AND FILE_GUBUN = 'file')  AS FILE_NAME,
@@ -576,11 +588,17 @@
 				PJT_CD
 			FROM
 				RV720_BOARD AA
-			WHERE
-				IDX = #{idx}        
+			WHERE 1=1
+				   
 		]]>
+		<if test="board_type == '' or board_type == null ">
+			AND IDX = ${idx}     
+		</if>
 		<if test="status != '' and status != null">
 			and STATUS = '${status}'
+		</if>
+		<if test="board_type != '' and board_type != null">
+			and PARENT_IDX = '10'
 		</if>
 	</select>
 	
