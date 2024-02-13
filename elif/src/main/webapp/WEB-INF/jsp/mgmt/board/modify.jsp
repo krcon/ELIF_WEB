@@ -77,12 +77,15 @@
 														<select name="pjt_cd" class="selectpicker" data-style="select-with-transition">
 													<c:choose>
 														<c:when test="${fn:length(project_list) > 0}">
+														    <option value="${row.pjt_cd}" ${map.pjt_cd==row.pjt_cd?'selected':''}>전체</option>
 															<c:forEach items="${project_list }" var="row">
 															<option value="${row.pjt_cd}" ${map.pjt_cd==row.pjt_cd?'selected':''}>${row.pjt_mrkg_nm}</option>
 															</c:forEach>
 														</c:when>
 													</c:choose>
 													</select>
+										<lable class="col-sm-2 col-form-label"><input type="checkbox" id="allcheck" value="${map.pjt_cd}"  onchange="fn_check();" ${map.pjt_cd=='' ?'checked="checked"':''}>  전체
+										</lable>
 											</div>
 										</div>
 										</c:if>
@@ -479,6 +482,9 @@
 		<script src="/resources/manager/custom/summernote/lang/summernote-ko-KR.js"></script>
 		<form id="commonForm" name="commonForm" method="get"></form>
 		<script>
+		if($("select[name=pjt_cd]").val() == ""){
+			$('#allcheck').attr("checked", true);
+		}
 		$('.texteditor').summernote(snOptions);
 		(function ($) {
 			var main_count = 0;
@@ -692,6 +698,24 @@
 				'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
 			}
 		});
+		
+		function fn_check(){
+			alert("전체 체크시 전체 프로젝트 공지사항으로 설정됩니다.");
+			var param = $('input:checkbox[id="allcheck"]').is(":checked");
+			if(param == true){
+				$('[name="pjt_cd"]').prop("disabled", true);
+				$('[name="pjt_cd"] option:selected').val("");
+				//$('[name="pjt_cd"]').val('').prop("selected",true);
+				$('[name="pjt_cd"] option:eq(0)').prop("selected",true);
+				//$('[name="pjt_cd"]').val("");
+				
+			    
+				
+			}else{
+				$('[name="pjt_cd"]').removeAttr("disabled");
+				//$('[name="pjt_cd"]').val("");
+			}
+		}
 	</script>
 </body>
 
