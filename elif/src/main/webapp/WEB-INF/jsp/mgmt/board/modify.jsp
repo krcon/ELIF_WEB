@@ -74,7 +74,7 @@
 										<div class="row">
 											<label class="col-sm-2 col-form-label" for="gubun">프로젝트 <span></span></label>
 											<div class="col-sm-10">
-														<select name="pjt_cd" class="selectpicker" data-style="select-with-transition">
+													<select name="pjt_cd" class="selectpicker" data-style="select-with-transition">
 													<c:choose>
 														<c:when test="${fn:length(project_list) > 0}">
 														    <option value="${row.pjt_cd}" ${map.pjt_cd==row.pjt_cd?'selected':''}>전체</option>
@@ -84,8 +84,8 @@
 														</c:when>
 													</c:choose>
 													</select>
-										<lable class="col-sm-2 col-form-label"><input type="checkbox" id="allcheck" value="${map.pjt_cd}"  onchange="fn_check();" ${map.pjt_cd=='' ?'checked="checked"':''}>  전체
-										</lable>
+												<lable class="col-sm-2 col-form-label"><input type="checkbox" id="allcheck" value="${map.pjt_cd}"  onchange="fn_check();" ${map.pjt_cd=='' ?'checked="checked"':''}>  전체
+												</lable>
 											</div>
 										</div>
 										</c:if>
